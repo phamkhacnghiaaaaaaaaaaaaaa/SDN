@@ -5,7 +5,7 @@ const rentalSchema = new mongoose.Schema({
     rent_date: { type: Date, default: Date.now },
     due_date: { type: Date, required: true },
     return_date: { type: Date },
-    status: { type: String, enum: ['Pending', 'Giao sách', 'Đã trả', 'Hủy'], default: 'Pending' },
+    status: { type: String, enum: ['pending', 'accepted', 'cancelled', 'borrowed', 'returned'], default: 'pending' },
     items: [{
         book_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Book' },
         quantity: { type: Number, default: 1 }

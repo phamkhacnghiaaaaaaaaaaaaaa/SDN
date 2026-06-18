@@ -4,7 +4,7 @@
     "user_id": { "$oid": "667104a3f123456789012342" },
     "rent_date": { "$date": "2026-06-10T08:00:00Z" },
     "due_date": { "$date": "2026-06-20T08:00:00Z" },
-    "status": "Giao sách",
+    "status": "pending",
     "items": [
       {
         "book_id": { "$oid": "667104a3f123456789012346" },

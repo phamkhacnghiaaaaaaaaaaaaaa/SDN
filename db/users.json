@@ -4,6 +4,7 @@
     "fullname": "Admin Library",
     "email": "admin@library.com",
     "password": "$2b$10$hashedpassword123",
+    "rental_available":20,
     "role": "Admin",
     "status": "Active"
   },
@@ -12,6 +13,7 @@
     "fullname": "John Doe",
     "email": "john@example.com",
     "password": "$2b$10$hashedpassword456",
+    "rental_available":20,
     "role": "User",
     "status": "Active"
   }
