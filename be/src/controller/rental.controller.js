@@ -29,8 +29,18 @@ const updateRentalStatus = async (req, res) => {
     }
 };
 
+const deleteRental = async (req, res) => {
+    try {
+        await Rental.findByIdAndDelete(req.params.id);
+        res.status(200).json({ message: 'Rental deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getAllRentals,
     createRental,
-    updateRentalStatus
+    updateRentalStatus,
+    deleteRental
 };
