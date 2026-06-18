@@ -1,0 +1,12 @@
+[
+  {
+    "_id": { "$oid": "667104a3f123456789012344" },
+    "name": "Robert C. Martin",
+    "bio": "Known as Uncle Bob, author of Clean Code."
+  },
+  {
+    "_id": { "$oid": "667104a3f12345678901234a" },
+    "name": "Dale Carnegie",
+    "bio": "Author of How to Win Friends and Influence People."
+  }
+]

@@ -1,0 +1,18 @@
+[
+  {
+    "_id": { "$oid": "667104a3f123456789012341" },
+    "fullname": "Admin Library",
+    "email": "admin@library.com",
+    "password": "$2b$10$hashedpassword123",
+    "role": "Admin",
+    "status": "Active"
+  },
+  {
+    "_id": { "$oid": "667104a3f123456789012342" },
+    "fullname": "John Doe",
+    "email": "john@example.com",
+    "password": "$2b$10$hashedpassword456",
+    "role": "User",
+    "status": "Active"
+  }
+]
