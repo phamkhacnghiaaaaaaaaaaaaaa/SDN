@@ -19,16 +19,6 @@ const getBookById = async (req, res) => {
     }
 };
 
-const getBookByIsbn = async (req, res) => {
-    try {
-        const book = await Book.findOne(req.params.isbn).populate('category_id author_id publisher_id');
-        if (!book) return res.status(404).json({ message: 'Book not found' });
-        res.status(200).json(book);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
 const createBook = async (req, res) => {
     try {
         const newBook = new Book(req.body);
@@ -63,5 +53,4 @@ module.exports = {
     createBook,
     updateBook,
     deleteBook,
-    getBookByIsbn
 };

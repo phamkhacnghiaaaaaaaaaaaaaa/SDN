@@ -1,5 +1,6 @@
 const Rental = require('../model/rental.model');
 const Book = require('../model/book.model');
+const User = require('../model/user.model');
 
 const getAllRentals = async (req, res) => {
     try {
@@ -12,9 +13,19 @@ const getAllRentals = async (req, res) => {
 
 const createRental = async (req, res) => {
     try {
-        const { items } = req.body;
+        const { items, user_id } = req.body;
         if (!items || items.length === 0) {
             return res.status(400).json({ message: 'Rental must contain at least one book.' });
+        }
+        
+        const total_books = items.reduce((total, item) => total + item.quantity, 0);
+
+        const user = await User.findById(user_id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if (user.rental_available < total_books) {
+            return res.status(400).json({ message: 'Not enough rental quota for this user' });
         }
 
         // 1. Check book availability for all items in the request
@@ -36,6 +47,11 @@ const createRental = async (req, res) => {
                 $inc: { available_quantity: -item.quantity }
             });
         }
+
+        const remain_quota = user.rental_available - total_books;
+        await User.findByIdAndUpdate(user_id, {
+            $set: { rental_available: remain_quota }
+        });
 
         // 3. Create and save the new rental
         const rentDate = new Date();
