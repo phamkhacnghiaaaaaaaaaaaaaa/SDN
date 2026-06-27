@@ -7,9 +7,11 @@ const {
   updateBook,
   deleteBook,
   getAvailableQuantityByBookId,
+  searchBook,
 } = require("../controller/book.controller");
 const { verifyToken, authorizeRole } = require("../middleware/auth");
 
+router.get("/search", searchBook);
 router.get("/available/:id", getAvailableQuantityByBookId);
 router.get("/", getAllBooks);
 router.get("/:id", verifyToken, getBookById);
