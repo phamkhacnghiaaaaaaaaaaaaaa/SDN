@@ -56,9 +56,6 @@ body{
     font-family: var(--font-sans)
 }
 
-#root{
-}
-
 .bg-dark{
   background-color: var(--color-bg);
 }

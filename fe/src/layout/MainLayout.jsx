@@ -11,7 +11,7 @@ const MainLayout = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="">
-        <div className=" flex justify-between items-center pt-10 pb-10 border-b-primary-hover border-1 border-bg max-w-7xl mx-auto px-4">
+        <div className=" flex justify-between items-center pt-10 pb-10 border-b-primary-hover border-bg max-w-7xl mx-auto px-4">
           <div className="flex gap-1 items-center text-2xl ">
             <img src={logo} />
             <div>Library SDN302</div>
