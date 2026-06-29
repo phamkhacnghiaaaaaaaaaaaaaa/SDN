@@ -82,3 +82,7 @@ body{
 .border-radius-sm{
   border-radius: var(--radius-sm);
 }
+
+.shadow-shadow-sm{
+  box-shadow: var(--shadow-sm);
+}

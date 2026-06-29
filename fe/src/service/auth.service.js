@@ -1,7 +1,7 @@
-import axios from "axios"
+import api from "../config/api"
 
 export const login = async (email, password) => {
-    const rs = await axios.post("/users/login",{
+    const rs = await api.post("/users/login",{
         email, password,
     });
 
