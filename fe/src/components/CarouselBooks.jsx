@@ -4,10 +4,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 
-const CarouselBooks = ({ books, carouselType }) => {
+const CarouselBooks = ({ books, carouselType, limit, showSeeAll = true }) => {
   const navigate = useNavigate();
   const { addToCart, isInCart } = useCart();
   const { isAuthenticated } = useAuth();
+
+  const displayedBooks = limit ? books.slice(0, limit) : books;
 
   const handleAddToCart = (e, book) => {
     e.stopPropagation(); // Prevent navigating to book detail if clicking cart
@@ -22,15 +24,20 @@ const CarouselBooks = ({ books, carouselType }) => {
     <div className="bg-bg-secondary p-10 rounded-md shadow-shadow-sm">
       <div className="flex justify-between h-max items-end">
         <h1 className="font-bold text-4xl pb-5">{carouselType}</h1>
-        <button className="bg-bg text-primary text-bold text-[14px] px-3 py-2 rounded-md hover:scale-110 hover:text-primary-hover transition-all duration-300 flex items-center"
-            onClick={()=>{navigate("/books/popular")}}
-        >
-          <span>See All</span>
-          <ChevronRight className="size-4"/>
-        </button>
+        {showSeeAll && (
+          <button
+            className="bg-bg text-primary text-bold text-[14px] px-3 py-2 rounded-md hover:scale-110 hover:text-primary-hover transition-all duration-300 flex items-center"
+            onClick={() => {
+              navigate("/books");
+            }}
+          >
+            <span>See All</span>
+            <ChevronRight className="size-4" />
+          </button>
+        )}
       </div>
-      <div className="flex grid-rows-6 gap-10">
-        {books.map((b) => {
+      <div className="grid grid-cols-5 gap-10 pt-5">
+        {displayedBooks.map((b) => {
           const inCart = isInCart(b._id);
           return (
           <div key={b._id} className="p-5 bg-bg rounded-md hover:scale-110 transition-all duration-300 overflow-hidden hover:z-10 cursor-pointer" onClick={() => navigate(`/books/${b._id}`)}>
@@ -38,7 +45,7 @@ const CarouselBooks = ({ books, carouselType }) => {
                 className="w-full h-56 object-cover"
                 src={`/images/${b.cover_image}.jpg`}
                 alt={b.title}
-                onError={(e) => { e.target.src = "https://via.placeholder.com/200x300?text=No+Cover" }}
+                onError={(e) => { e.target.src = "https://via.placeholder.com/64x96?text=No+Cover" }}
               />
             <div className="pt-2">
               <Link to={`/books/${b._id}`} onClick={(e) => e.stopPropagation()}>

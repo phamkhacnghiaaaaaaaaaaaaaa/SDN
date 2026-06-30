@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import * as bookService from "../service/books.service";
 import CarouselBooks from "../components/CarouselBooks";
 
-const Home = () => {
+const Books = () => {
   const [books, setBooks] = useState([]);
 
   const getAllBooks = async () => {
@@ -16,14 +16,9 @@ const Home = () => {
 
   return (
     <div className="">
-      <CarouselBooks
-        books={books}
-        carouselType={"POPULAR"}
-        limit={5}
-        showSeeAll={true}
-      />
+      <CarouselBooks books={books} carouselType={"ALL BOOKS"} showSeeAll={false} />
     </div>
   );
 };
 
-export default Home;
+export default Books;

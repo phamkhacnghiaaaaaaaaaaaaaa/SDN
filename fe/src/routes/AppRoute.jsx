@@ -1,14 +1,15 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
+import ProtectedLayout from "../layout/ProtectedLayout";
 import Home from "../page/Home";
 import Login from "../page/Login";
 import Register from "../page/Register";
 import ForgotPassword from "../page/ForgotPassword";
 import BookDetail from "../page/BookDetail";
+import Books from "../page/Books";
 import Cart from "../page/Cart";
 import MyRentals from "../page/MyRentals";
-import ProtectedRoute from "../components/ProtectedRoute";
 
 const AppRoute = () => {
   return (
@@ -18,9 +19,12 @@ const AppRoute = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
-        <Route path="/books/:id" element={<ProtectedRoute><BookDetail /></ProtectedRoute>} />
-        <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
-        <Route path="/my-rentals" element={<ProtectedRoute><MyRentals /></ProtectedRoute>} />
+        <Route element={<ProtectedLayout />}>
+          <Route path="/books" element={<Books />} />
+          <Route path="/books/:id" element={<BookDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/my-rentals" element={<MyRentals />} />
+        </Route>
       </Route>
     </Routes>
   );
