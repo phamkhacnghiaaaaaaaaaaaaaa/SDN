@@ -1,11 +1,30 @@
 const Book = require("../model/book.model");
 const Rental = require("../model/rental.model");
+const Category = require("../model/category.model");
+const mongoose = require("mongoose");
 
 const getAllBooks = async (req, res) => {
   try {
-    const books = await Book.find().populate(
+    const { category } = req.query;
+
+    let query = {};
+
+    if (category && category.trim() !== "") {
+      query = {
+        category_id: {
+          $in: (
+            await Category.find({
+              name: { $regex: category, $options: "i" },
+            }).select("_id")
+          ).map((c) => c._id),
+        },
+      };
+    }
+
+    const books = await Book.find(query).populate(
       "category_id author_id publisher_id",
     );
+
     res.status(200).json(books);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -45,11 +64,9 @@ const searchBook = async (req, res) => {
     });
 
     if (filteredBooks.length === 0)
-      return res
-        .status(404)
-        .json({
-          message: `Can't not find book with category: ${category}, author: ${author}, publisher: ${publisher}`,
-        });
+      return res.status(404).json({
+        message: `Can't not find book with category: ${category}, author: ${author}, publisher: ${publisher}`,
+      });
 
     res.status(200).json(filteredBooks);
   } catch (error) {
@@ -57,49 +74,77 @@ const searchBook = async (req, res) => {
   }
 };
 
-// check isbn xem exist chưa, nếu rồi thì + quantity, ko thì tạo mới luôn.
-// cho phép tạo sách mới để quantity = 0 ???  - nghe hơi ngu, Nhưng ke me vay
-
+// fixed: 1. check isbn trùng -> hỏi merge, 2. check số lượng sách đang ngoài đường,
+// 3. check số lượng sách sau chỉnh sửa >= số lượng sách đang ngoài đường, 4. check available_quantity >= 0,
+// 5. check available_quantity + số lượng sách đang ngoài đường <= quantity
 const createBook = async (req, res) => {
   try {
     const { isbn, quantity, price, ...otherData } = req.body;
 
-    // Validation nghiêm ngặt cho việc nhập mới
-    if (!isbn) return res.status(400).json({ message: "ISBN is required" });
-    if (typeof quantity !== "number" || quantity < 0)
-      return res
-        .status(400)
-        .json({ message: "Quantity must be greater or equal 0" });
-    if (typeof price !== "number" || price < 0)
-      return res.status(400).json({ message: "Price cannot be negative" });
+    if (!isbn || !isbn.trim()) {
+      return res.status(400).json({
+        message: "ISBN is required",
+      });
+    }
 
-    const existingBook = await Book.findOne({ isbn });
+    if (typeof quantity !== "number" || quantity < 0) {
+      return res.status(400).json({
+        message: "Quantity must be greater or equal to 0",
+      });
+    }
 
+    if (typeof price !== "number" || price < 0) {
+      return res.status(400).json({
+        message: "Price cannot be negative",
+      });
+    }
+
+    const normalizedISBN = isbn.trim();
+
+    const existingBook = await Book.findOne({
+      isbn: normalizedISBN,
+    });
+
+    // ISBN đã tồn tại -> chỉ nhập thêm số lượng
     if (existingBook) {
       existingBook.quantity += quantity;
       existingBook.available_quantity += quantity;
+
       await existingBook.save();
-      return res
-        .status(200)
-        .json({ message: "Quantity increased", book: existingBook });
-    } else {
-      const newBook = new Book({
-        isbn,
-        quantity,
-        available_quantity: quantity,
-        price,
-        ...otherData,
+
+      return res.status(200).json({
+        message: "Quantity increased successfully",
+        book: existingBook,
       });
-      await newBook.save();
-      return res.status(201).json(newBook);
     }
+
+    // ISBN chưa tồn tại -> tạo mới
+    const newBook = new Book({
+      isbn: normalizedISBN,
+      quantity,
+      available_quantity: quantity,
+      price,
+      ...otherData,
+    });
+
+    await newBook.save();
+
+    return res.status(201).json({
+      message: "Book created successfully",
+      book: newBook,
+    });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({
+      message: error.message,
+    });
   }
 };
 
 // valdate lớn hơn >= 0 hết.
 // số lượng sách sau chỉnh sửa ít nhất phải lớn hơn số lượng sách đang ở bên ngoài rental.
+
+// fixed : 1. validate số lượng sách >= số lượng sách đang ngoài đường,
+// 2. validate available_quantity >= 0 ; 3. validate available_quantity + số lượng sách đang ngoài đường <= quantity
 const updateBook = async (req, res) => {
   try {
     const { quantity, available_quantity, isbn, ...otherData } = req.body;
@@ -110,8 +155,11 @@ const updateBook = async (req, res) => {
       return res.status(404).json({ message: "Book not found" });
 
     // --- 1. Xử lý ISBN (Check trùng & Hỏi Merge) ---
-    if (isbn && isbn !== currentBook.isbn) {
-      const existingBook = await Book.findOne({ isbn });
+    if (isbn && isbn.trim() !== currentBook.isbn) {
+      const normalizedISBN = isbn.trim();
+
+      const existingBook = await Book.findOne({ isbn: normalizedISBN });
+
       if (existingBook) {
         return res.status(409).json({
           message: "ISBN conflict: Another book already exists with this ISBN.",
@@ -125,54 +173,75 @@ const updateBook = async (req, res) => {
     const activeRentals = await Rental.aggregate([
       { $match: { status: { $in: ["accepted", "borrowed"] } } },
       { $unwind: "$items" },
-      { $match: { "items.book_id": new mongoose.Types.ObjectId(bookId) } },
-      { $group: { _id: null, totalBorrowed: { $sum: "$items.quantity" } } },
+      {
+        $match: {
+          "items.book_id": new mongoose.Types.ObjectId(bookId),
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalBorrowed: { $sum: "$items.quantity" },
+        },
+      },
     ]);
+
     const borrowedCount =
       activeRentals.length > 0 ? activeRentals[0].totalBorrowed : 0;
 
-    // --- 3. LOGIC TÍNH TOÁN INVENTORY XUYÊN SUỐT ---
-    // Khởi tạo giá trị mặc định là số lượng hiện tại
+    // --- 3. LOGIC TÍNH INVENTORY ---
     let newQuantity = currentBook.quantity;
     let newAvailable = currentBook.available_quantity;
 
-    // Nếu có update quantity
     if (quantity !== undefined) {
-      const delta = quantity - currentBook.quantity; // Tính độ lệch (tăng hoặc giảm bao nhiêu)
+      if (typeof quantity !== "number" || quantity < 0) {
+        return res.status(400).json({
+          message: "Quantity must be >= 0",
+        });
+      }
+
+      const delta = quantity - currentBook.quantity;
+
       newQuantity = quantity;
-      // Tự động cộng/trừ độ lệch này vào available thay vì gán cứng
-      // (Ví dụ: nhập thêm 10 quyển -> delta = 10 -> available cũ + 10)
+
       if (available_quantity === undefined) {
         newAvailable = currentBook.available_quantity + delta;
       }
     }
 
-    // Nếu FE có chủ động gửi available_quantity thì ưu tiên lấy của FE
     if (available_quantity !== undefined) {
+      if (typeof available_quantity !== "number" || available_quantity < 0) {
+        return res.status(400).json({
+          message: "Available quantity must be >= 0",
+        });
+      }
+
       newAvailable = available_quantity;
     }
 
-    // --- 4. KIỂM TRA ĐIỀU KIỆN (CHỐT CHẶN CUỐI CÙNG) ---
+    // --- 4. VALIDATION CHẶT ---
     if (newQuantity < borrowedCount) {
       return res.status(400).json({
-        message: `Invalid quantity: Cannot be less than borrowed amount (${borrowedCount})`,
-      });
-    }
-    if (newAvailable < 0) {
-      return res
-        .status(400)
-        .json({ message: "Available quantity cannot be negative" });
-    }
-    if (newAvailable + borrowedCount > newQuantity) {
-      return res.status(400).json({
-        message: `Invalid inventory: Sum of available (${newAvailable}) and borrowed (${borrowedCount}) exceeds total quantity (${newQuantity})`,
+        message: `Invalid quantity: cannot be less than borrowed amount (${borrowedCount})`,
       });
     }
 
-    // --- 5. Update ---
-    let updateData = {
+    if (newAvailable < 0) {
+      return res.status(400).json({
+        message: "Available quantity cannot be negative",
+      });
+    }
+
+    if (newAvailable + borrowedCount > newQuantity) {
+      return res.status(400).json({
+        message: `Invalid inventory: available (${newAvailable}) + borrowed (${borrowedCount}) cannot exceed total (${newQuantity})`,
+      });
+    }
+
+    // --- 5. UPDATE ---
+    const updateData = {
       ...otherData,
-      isbn,
+      isbn: isbn ? isbn.trim() : currentBook.isbn,
       quantity: newQuantity,
       available_quantity: newAvailable,
     };
@@ -182,6 +251,7 @@ const updateBook = async (req, res) => {
       { $set: updateData },
       { new: true },
     );
+
     res.status(200).json(updatedBook);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -257,5 +327,5 @@ module.exports = {
   updateBook,
   deleteBook,
   getAvailableQuantityByBookId,
-  searchBook
+  searchBook,
 };
