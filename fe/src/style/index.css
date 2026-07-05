@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import "tailwindcss";
+
+
+:root {
+  /* ========== Brand ========== */
+  --primary: #4f8cff;
+  --primary-hover: #6aa3ff;
+  --secondary: #8b5cf6;
+
+  /* ========== Background ========== */
+  --bg: #0f172a;
+  --bg-secondary: #1e293b;
+  --surface: #263449;
+  --surface-hover: #334155;
+
+  /* ========== Text ========== */
+  --text: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+
+  /* ========== Border ========== */
+  --border: #334155;
+
+  /* ========== Status ========== */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #38bdf8;
+
+  /* ========== Book Status ========== */
+  --available: #22c55e;
+  --borrowed: #f59e0b;
+  --reserved: #8b5cf6;
+  --out-of-stock: #ef4444;
+
+  /* ========== Rating ========== */
+  --star: #fbbf24;
+
+  /* ========== Shadow ========== */
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.25);
+  --shadow-md: 0 6px 18px rgba(0,0,0,.35);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,.45);
+
+  /* ========== Radius ========== */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  /* ========== Transition ========== */
+  --transition: all .25s ease;
+
+  --font-family: "Inter", sans-serif;
+}
+
+#root{
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-family)
+}

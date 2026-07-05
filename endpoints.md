@@ -22,7 +22,7 @@
 | Method | Endpoint | Description | Body / Params |
 | :--- | :--- | :--- | :--- |
 | `GET` | `/rentals` | List all rentals | None |
-| `POST` | `/rentals` | Create a new rental | `{ user_id, due_date, items: [{ book_id, quantity }] }` |
+| `POST` | `/rentals` | Create a new rental | `{ user_id, staff_id, due_date, items: [{ book_id, quantity }] }` |
 | `PATCH` | `/rentals/:id/status` | Update rental status | `id`, `{ status }` (Pending, Giao sách, Đã trả, Hủy) |
 | `DELETE` | `/rentals/:id` | Delete a rental | `id` |
 
