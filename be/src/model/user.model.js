@@ -6,7 +6,11 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     rental_available: {type: Number, default: 20},
     role: { type: String, enum: ['Visitor', 'User', 'Staff', 'Admin'], default: 'User' },
-    status: { type: String, enum: ['Active', 'Locked'], default: 'Active' }
+    status: { type: String, enum: ['Active', 'Locked'], default: 'Active' },
+    twoFactorEnabled: { type: Boolean, default: false },
+    twoFactorSecret: { type: String },
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date }
 }, {
     timestamps: true
 });

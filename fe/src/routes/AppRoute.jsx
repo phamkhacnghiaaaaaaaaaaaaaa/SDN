@@ -6,6 +6,7 @@ import Home from "../page/Home";
 import Login from "../page/Login";
 import Register from "../page/Register";
 import ForgotPassword from "../page/ForgotPassword";
+import ResetPassword from "../page/ResetPassword";
 import BookDetail from "../page/BookDetail";
 import Books from "../page/Books";
 import Cart from "../page/Cart";
@@ -17,6 +18,7 @@ const AppRoute = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
         <Route element={<ProtectedLayout />}>

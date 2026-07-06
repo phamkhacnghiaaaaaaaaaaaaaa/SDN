@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import * as authService from "../service/auth.service";
 import {
   BookOpen,
   Mail,
@@ -31,11 +32,14 @@ const ForgotPassword = () => {
     }
 
     setLoading(true);
-    // Simulate API call (backend doesn't have reset endpoint yet)
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await authService.forgotPassword(email);
       setSuccess(true);
-    }, 1500);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to send reset link. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

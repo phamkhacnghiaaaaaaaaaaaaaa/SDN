@@ -16,7 +16,7 @@ const ProfileSidebar = ({ activeTab, setActiveTab }) => {
     { id: "reading", label: "Reading Progress", icon: <BookOpen size={18} /> },
     { id: "favorites", label: "Favorite Books", icon: <BookHeart size={18} /> },
     { id: "rentals", label: "Rental History", icon: <Clock size={18} /> },
-    { id: "settings", label: "Profile Settings", icon: <Settings size={18} /> },
+    { id: "settings", label: "Settings", icon: <Settings size={18} /> },
   ];
 
   return (

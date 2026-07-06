@@ -34,10 +34,25 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     const data = await authService.login(email, password);
 
+    if (data.requires2FA) {
+      return data;
+    }
+
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
 
     setUser(data.user);
+    return data;
+  };
+
+  const verify2FA = async (userId, otp) => {
+    const data = await authService.verifyLogin2FA(userId, otp);
+
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    setUser(data.user);
+    return data;
   };
 
   const logout = () => {
@@ -54,6 +69,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         isAuthenticated,
         login,
+        verify2FA,
         logout,
       }}
     >

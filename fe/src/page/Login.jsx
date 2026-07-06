@@ -19,28 +19,58 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  
+  const [needs2FA, setNeeds2FA] = useState(false);
+  const [userId, setUserId] = useState("");
+  const [otp, setOtp] = useState("");
+
+  const { login, verify2FA } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (!email || !password) {
-      setError("Please fill in all fields");
-      return;
-    }
+    if (!needs2FA) {
+      if (!email || !password) {
+        setError("Please fill in all fields");
+        return;
+      }
 
-    setLoading(true);
-    try {
-      await login(email, password);
-      navigate("/");
-    } catch (err) {
-      setError(
-        err.response?.data?.message || "Login failed. Please try again."
-      );
-    } finally {
-      setLoading(false);
+      setLoading(true);
+      try {
+        const res = await login(email, password);
+        if (res?.requires2FA) {
+          setNeeds2FA(true);
+          setUserId(res.userId);
+        } else {
+          navigate("/");
+        }
+      } catch (err) {
+        setError(
+          err.response?.data?.message || "Login failed. Please try again."
+        );
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Handle OTP submission
+      if (!otp) {
+        setError("Please enter the OTP sent to your email");
+        return;
+      }
+
+      setLoading(true);
+      try {
+        await verify2FA(userId, otp);
+        navigate("/");
+      } catch (err) {
+        setError(
+          err.response?.data?.message || "Invalid OTP. Please try again."
+        );
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -71,7 +101,7 @@ const Login = () => {
             <h1 className="login-logo__title">Library SDN302</h1>
           </div>
           <p className="login-card__subtitle">
-            Welcome back! Sign in to your account
+            {needs2FA ? "Enter the verification code sent to your email" : "Welcome back! Sign in to your account"}
           </p>
         </div>
 
@@ -85,88 +115,122 @@ const Login = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="login-form">
-          {/* Email */}
-          <div className="login-field">
-            <label htmlFor="email" className="login-field__label">
-              Email Address
-            </label>
-            <div className="login-field__input-wrap">
-              <Mail className="login-field__icon" size={18} />
-              <input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                className="login-field__input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-              />
-            </div>
-          </div>
+          {!needs2FA ? (
+            <>
+              {/* Email */}
+              <div className="login-field">
+                <label htmlFor="email" className="login-field__label">
+                  Email Address
+                </label>
+                <div className="login-field__input-wrap">
+                  <Mail className="login-field__icon" size={18} />
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    className="login-field__input"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                  />
+                </div>
+              </div>
 
-          {/* Password */}
-          <div className="login-field">
-            <div className="login-field__label-row">
-              <label htmlFor="password" className="login-field__label">
-                Password
+              {/* Password */}
+              <div className="login-field">
+                <div className="login-field__label-row">
+                  <label htmlFor="password" className="login-field__label">
+                    Password
+                  </label>
+                  <Link to="/forgot-password" className="login-field__forgot">
+                    Forgot password?
+                  </Link>
+                </div>
+                <div className="login-field__input-wrap">
+                  <Lock className="login-field__icon" size={18} />
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    className="login-field__input"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    className="login-field__eye"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            /* OTP Field */
+            <div className="login-field">
+              <label htmlFor="otp" className="login-field__label">
+                One-Time Password (OTP)
               </label>
-              <Link to="/forgot-password" className="login-field__forgot">
-                Forgot password?
-              </Link>
-            </div>
-            <div className="login-field__input-wrap">
-              <Lock className="login-field__icon" size={18} />
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                className="login-field__input"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-              />
-              <button
-                type="button"
-                className="login-field__eye"
-                onClick={() => setShowPassword(!showPassword)}
-                tabIndex={-1}
+              <div className="login-field__input-wrap">
+                <Lock className="login-field__icon" size={18} />
+                <input
+                  id="otp"
+                  type="text"
+                  placeholder="Enter 6-digit OTP"
+                  className="login-field__input text-center tracking-widest text-lg font-medium"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  maxLength={6}
+                />
+              </div>
+              <button 
+                type="button" 
+                onClick={() => { setNeeds2FA(false); setOtp(""); setError(""); }}
+                className="mt-4 text-sm text-primary hover:underline"
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                Back to Login
               </button>
             </div>
-          </div>
+          )}
 
           {/* Submit */}
           <button
             type="submit"
             className="login-btn"
-            disabled={loading}
+            disabled={loading || (needs2FA && otp.length < 6)}
           >
             {loading ? (
               <Loader2 className="login-btn__spinner" size={20} />
             ) : (
               <>
-                Sign In
+                {needs2FA ? "Verify" : "Sign In"}
                 <ArrowRight size={18} />
               </>
             )}
           </button>
         </form>
 
-        {/* Divider */}
-        <div className="login-divider">
-          <div className="login-divider__line" />
-          <span className="login-divider__text">or</span>
-          <div className="login-divider__line" />
-        </div>
+        {!needs2FA && (
+          <>
+            {/* Divider */}
+            <div className="login-divider">
+              <div className="login-divider__line" />
+              <span className="login-divider__text">or</span>
+              <div className="login-divider__line" />
+            </div>
 
-        {/* Footer */}
-        <p className="login-footer">
-          Don't have an account?{" "}
-          <Link to="/register" className="login-footer__link">
-            Create account
-          </Link>
-        </p>
+            {/* Footer */}
+            <p className="login-footer">
+              Don't have an account?{" "}
+              <Link to="/register" className="login-footer__link">
+                Create account
+              </Link>
+            </p>
+          </>
+        )}
       </div>
     </div>
   );

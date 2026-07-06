@@ -4,7 +4,7 @@ import ProfileSidebar from "../components/profile/ProfileSidebar";
 import FavouriteBooks from "../components/profile/FavouriteBooks";
 import ReadingBooks from "../components/profile/ReadingBooks";
 import RentalHistory from "../components/profile/RentalHistory";
-import ProfileSettings from "../components/profile/ProfileSettings";
+import SettingsContainer from "../components/profile/SettingsContainer";
 
 const Profile = () => {
   const location = useLocation();
@@ -26,7 +26,7 @@ const Profile = () => {
       case "rentals":
         return <RentalHistory />;
       case "settings":
-        return <ProfileSettings />;
+        return <SettingsContainer />;
       default:
         return <ReadingBooks />;
     }
