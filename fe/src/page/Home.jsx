@@ -10,8 +10,8 @@ const Home = () => {
   const { filteredBooks, isFiltering, filterProps } = useBookFilter(books);
 
   const getAllBooks = async () => {
-    const data = await bookService.getAllBooks();
-    setBooks(data);
+    const res = await bookService.getAllBooks();
+    setBooks(res.data);
   };
 
   useEffect(() => {
