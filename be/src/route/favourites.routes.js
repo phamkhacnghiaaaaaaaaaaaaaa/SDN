@@ -4,6 +4,7 @@ const {
   getFavouriteCountByBookId,
 } = require("../controller/favourites.controller");
 
-router.get("/count/:bookId", getFavouriteCountByBookId);
+router.get("/", getFavouriteCountByBookId); // tất cả
+router.get("/:bookId", getFavouriteCountByBookId); // một sách
 
 module.exports = router;

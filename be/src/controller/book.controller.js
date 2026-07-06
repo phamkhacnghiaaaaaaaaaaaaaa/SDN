@@ -74,9 +74,7 @@ const searchBook = async (req, res) => {
   }
 };
 
-// fixed: 1. check isbn trùng -> hỏi merge, 2. check số lượng sách đang ngoài đường,
-// 3. check số lượng sách sau chỉnh sửa >= số lượng sách đang ngoài đường, 4. check available_quantity >= 0,
-// 5. check available_quantity + số lượng sách đang ngoài đường <= quantity
+// fixed
 const createBook = async (req, res) => {
   try {
     const { isbn, quantity, price, ...otherData } = req.body;
@@ -258,37 +256,44 @@ const updateBook = async (req, res) => {
   }
 };
 
-//cái này thì check xem trong tất cả các cái Rental
-// xem có còn cái nào chứa id đó mà nó vẫn chưa được trả ko ?
+// fixed: 1. check còn rental nào chưa trả sách này không, nếu có thì không cho xóa
 const deleteBook = async (req, res) => {
   try {
     const bookId = req.params.id;
 
-    // 1. Kiểm tra xem sách này có đang được mượn không
-    // Tìm bất kỳ đơn hàng nào chứa bookId này mà status KHÔNG PHẢI là 'returned' hoặc 'cancelled'
-    const activeRental = await Rental.findOne({
-      "items.book_id": bookId,
-      status: { $nin: ["returned", "cancelled"] },
-    });
+    // Kiểm tra sách có tồn tại không
+    const book = await Book.findById(bookId);
 
-    // 2. Nếu tìm thấy, chặn không cho xóa
-    if (activeRental) {
-      return res.status(400).json({
-        message:
-          "Cannot delete book: It is currently being borrowed or pending in an active rental.",
+    if (!book) {
+      return res.status(404).json({
+        message: "Book not found",
       });
     }
 
-    // 3. Nếu an toàn, tiến hành xóa
-    const deletedBook = await Book.findByIdAndDelete(bookId);
+    // Kiểm tra còn Rental nào chưa trả sách này không
+    const activeRental = await Rental.exists({
+      "items.book_id": bookId,
+      status: {
+        $nin: ["returned", "cancelled"],
+      },
+    });
 
-    if (!deletedBook) {
-      return res.status(404).json({ message: "Book not found" });
+    if (activeRental) {
+      return res.status(400).json({
+        message:
+          "Cannot delete book because it is referenced by an active rental.",
+      });
     }
 
-    res.status(200).json({ message: "Book deleted successfully" });
+    await Book.findByIdAndDelete(bookId);
+
+    return res.status(200).json({
+      message: "Book deleted successfully",
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: error.message,
+    });
   }
 };
 
