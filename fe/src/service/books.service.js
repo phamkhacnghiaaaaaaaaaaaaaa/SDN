@@ -1,6 +1,6 @@
 import api from '../config/api'
 
-export const getAllBooks = async (page = 1, limit = 10) =>{
+export const getAllBooks = async (page = 1, limit = 10) => {
     const rs = await api.get(`/books?page=${page}&limit=${limit}`);
     console.log(rs.data);
 
