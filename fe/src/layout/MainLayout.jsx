@@ -1,5 +1,5 @@
-import React from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   House,
   Search,
@@ -16,11 +16,63 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import * as booksService from "../service/books.service";
 
 const MainLayout = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const { getCartCount } = useCart();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      if (!searchQuery.trim()) {
+        setSearchResults([]);
+        return;
+      }
+      setIsSearching(true);
+      try {
+        const results = await booksService.searchBooks(searchQuery);
+        // Display up to 5 results
+        setSearchResults(results.slice(0, 5));
+      } catch (error) {
+        console.error("Failed to search books", error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    const debounceTimer = setTimeout(fetchSearchResults, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setShowDropdown(true);
+  };
+
+  const handleSelectBook = (bookId) => {
+    setShowDropdown(false);
+    setSearchQuery("");
+    navigate(`/books/${bookId}`);
+  };
 
   const isActive = (path) => location.pathname === path;
 
@@ -48,12 +100,46 @@ const MainLayout = () => {
           </Link>
 
           {/* Search */}
-          <div className="main-search">
+          <div className="main-search relative" ref={searchRef}>
             <Search className="main-search__icon" size={17} />
             <input
-              className="main-search__input"
-              placeholder="Search books, authors, categories..."
+              className="main-search__input w-full"
+              placeholder="Search books by title..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onFocus={() => { if (searchQuery) setShowDropdown(true); }}
             />
+
+            {/* Search Dropdown */}
+            {showDropdown && searchQuery && (
+              <div className="absolute top-full mt-2 w-full bg-white rounded-md shadow-lg border border-gray-200 z-50 overflow-hidden">
+                {isSearching ? (
+                  <div className="p-4 text-center text-gray-500 text-sm">Searching...</div>
+                ) : searchResults.length > 0 ? (
+                  <ul className="max-h-80 overflow-y-auto">
+                    {searchResults.map((book) => (
+                      <li key={book._id} className="border-b border-gray-100 last:border-0">
+                        <button
+                          onClick={() => handleSelectBook(book._id)}
+                          className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3 transition-colors"
+                        >
+                          {book.cover_image ? (
+                            <img src={`/images/${book.cover_image}.jpg`} alt={book.title} className="w-10 h-14 object-cover rounded-sm" />
+                          ) : (
+                            <div className="w-10 h-14 bg-gray-200 rounded-sm flex items-center justify-center">
+                              <BookOpen size={16} className="text-gray-400" />
+                            </div>
+                          )}
+                          <span className="text-sm font-medium text-gray-800 line-clamp-2 flex-1">{book.title}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="p-4 text-center text-gray-500 text-sm">No books found matching "{searchQuery}"</div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Navigation */}

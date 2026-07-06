@@ -11,3 +11,8 @@ export const getBookById = async (id) => {
     const rs = await api.get(`/books/${id}`);
     return rs.data;
 };
+
+export const searchBooks = async (title) => {
+    const rs = await api.get(`/books/search?title=${encodeURIComponent(title)}`);
+    return rs.data;
+};

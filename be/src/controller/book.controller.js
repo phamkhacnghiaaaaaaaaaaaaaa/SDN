@@ -36,7 +36,7 @@ const getBookById = async (req, res) => {
 
 const searchBook = async (req, res) => {
   try {
-    const { category, author, publisher } = req.query;
+    const { category, author, publisher, title } = req.query;
     const books = await Book.find().populate(
       "category_id author_id publisher_id",
     );
@@ -51,14 +51,18 @@ const searchBook = async (req, res) => {
       const publisherFilter = publisher
         ? b.publisher_id.name.toLowerCase().includes(publisher.toLowerCase())
         : true;
-      return categoryFilter && authorFilter && publisherFilter;
+      const titleFilter = title
+        ? b.title.toLowerCase().includes(title.toLowerCase())
+        : true;
+        
+      return categoryFilter && authorFilter && publisherFilter && titleFilter;
     });
 
     if (filteredBooks.length === 0)
       return res
         .status(404)
         .json({
-          message: `Can't not find book with category: ${category}, author: ${author}, publisher: ${publisher}`,
+          message: `Can't not find book with the given criteria`,
         });
 
     res.status(200).json(filteredBooks);
