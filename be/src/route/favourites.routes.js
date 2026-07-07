@@ -7,7 +7,7 @@ const {
 } = require("../controller/favourites.controller");
 const { verifyToken } = require("../middleware/auth");
 
-router.get("/", getFavouriteCountByBookId); // tất cả
+router.get("/count", getFavouriteCountByBookId); // tất cả
 router.get("/count/:bookId", getFavouriteCountByBookId);
 router.get("/my-favourites", verifyToken, getFavouritesByUser);
 router.post("/toggle", verifyToken, toggleFavourite);
