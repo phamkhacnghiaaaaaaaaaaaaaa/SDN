@@ -5,6 +5,7 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import * as rentalService from "../service/rental.service";
 import * as authService from "../service/auth.service";
+import toast from "react-hot-toast";
 
 const Cart = () => {
   const { cartItems, removeFromCart, updateQuantity, getTotalBooksCount, clearCart } = useCart();
@@ -50,7 +51,8 @@ const Cart = () => {
 
       await rentalService.createRental(user.id || user._id, itemsPayload);
       clearCart();
-      navigate("/profile", { state: { success: "Rental request submitted successfully! Pending staff approval." } });
+      toast.success("Rental request submitted successfully! Pending staff approval.");
+      navigate("/profile", { state: { tab: "rentals" } });
     } catch (err) {
       setError(err.response?.data?.message || "Failed to submit rental request. Please try again.");
     } finally {

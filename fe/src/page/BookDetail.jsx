@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ShoppingCart, ArrowLeft, CheckCircle, XCircle } from "lucide-react";
+import { ShoppingCart, ArrowLeft, CheckCircle, XCircle, Heart, BookOpen } from "lucide-react";
 import * as bookService from "../service/books.service";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import { getMyFavourites, toggleFavourite } from "../service/favourites.service";
+import toast from "react-hot-toast";
 
 const BookDetail = () => {
   const { id } = useParams();
@@ -15,9 +17,10 @@ const BookDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
-    const fetchBook = async () => {
+    const fetchBookAndFavs = async () => {
       try {
         const data = await bookService.getBookById(id);
         setBook(data);
@@ -27,14 +30,26 @@ const BookDetail = () => {
         if (cartItem) {
             setQuantity(cartItem.quantity);
         }
+
+        if (isAuthenticated) {
+          try {
+            const favData = await getMyFavourites();
+            if (favData.success && favData.favourites) {
+              const favIds = favData.favourites.map(f => typeof f.book_id === 'object' ? f.book_id._id : f.book_id);
+              setIsFavorite(favIds.includes(id));
+            }
+          } catch (err) {
+            console.error("Failed to fetch favorites", err);
+          }
+        }
       } catch (err) {
         setError(err.response?.data?.message || "Failed to load book details");
       } finally {
         setLoading(false);
       }
     };
-    fetchBook();
-  }, [id, cartItems]);
+    fetchBookAndFavs();
+  }, [id, cartItems, isAuthenticated]);
 
   const handleAddToCart = () => {
     if (!isAuthenticated) {
@@ -44,14 +59,34 @@ const BookDetail = () => {
 
     if (isInCart(id)) {
         updateQuantity(id, quantity);
+        toast.success("Cart updated!");
     } else {
-        // We need to add it multiple times or add a specific addToCartWithQuantity method.
-        // For simplicity, we just add it once here if the context doesn't support adding with qty.
-        // Wait, the context addToCart adds 1. Let's add it then update qty.
         addToCart(book);
         if (quantity > 1) {
             setTimeout(() => updateQuantity(id, quantity), 0);
         }
+        toast.success("Added to cart!");
+    }
+  };
+
+  const handleToggleFavorite = async () => {
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: `/books/${id}` } });
+      return;
+    }
+    try {
+      const data = await toggleFavourite(id);
+      if (data.success) {
+        setIsFavorite(data.isFavourite);
+        if (data.isFavourite) {
+          toast.success("Added to favourites!");
+        } else {
+          toast.success("Removed from favourites!");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to toggle favorite", error);
+      toast.error("An error occurred");
     }
   };
 
@@ -139,7 +174,7 @@ const BookDetail = () => {
           </div>
 
           {/* Actions */}
-          <div className="book-detail-actions bg-surface p-6 rounded-xl border border-border mt-auto">
+          <div className="book-detail-actions bg-surface p-6 rounded-xl border border-border mt-auto flex flex-col gap-4">
             {isAvailable ? (
               <div className="flex flex-col sm:flex-row items-end gap-4">
                 <div className="flex-1 w-full">
@@ -173,6 +208,28 @@ const BookDetail = () => {
                   Currently Unavailable
                </button>
             )}
+
+            <div className="flex gap-4 w-full">
+               <button 
+                 className={`book-btn flex-1 sm:flex-none bg-surface border border-border hover:bg-surface-hover ${isFavorite ? 'text-red-500' : 'text-text'}`}
+                 onClick={handleToggleFavorite}
+               >
+                 <Heart size={20} className={isFavorite ? "fill-red-500 text-red-500" : ""} />
+                 Favorite
+               </button>
+               
+               {book.pdf_url && (
+                 <a 
+                   href={book.pdf_url}
+                   target="_blank"
+                   rel="noreferrer"
+                   className="book-btn flex-1 sm:flex-none bg-blue-500 hover:bg-blue-600 text-white flex justify-center items-center gap-2"
+                 >
+                   <BookOpen size={20} />
+                   Read Online
+                 </a>
+               )}
+            </div>
           </div>
         </div>
       </div>

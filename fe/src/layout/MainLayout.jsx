@@ -17,6 +17,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import * as booksService from "../service/books.service";
+import toast from "react-hot-toast";
 
 const MainLayout = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -165,7 +166,10 @@ const MainLayout = () => {
 
                 <button
                   className="main-nav__logout"
-                  onClick={logout}
+                  onClick={() => {
+                    logout();
+                    toast.success("Logged out successfully");
+                  }}
                   title="Logout"
                 >
                   <LogOut size={17} />

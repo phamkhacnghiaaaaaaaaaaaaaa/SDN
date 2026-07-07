@@ -2,13 +2,14 @@ import React, { useState, useEffect } from "react";
 import { CheckCircle, Clock, XCircle, BookOpen, AlertCircle } from "lucide-react";
 import * as rentalService from "../../service/rental.service";
 import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast";
 
 const RentalHistory = () => {
   const { user } = useAuth();
   const [rentals, setRentals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
+  const [cancelModal, setCancelModal] = useState({ isOpen: false, rentalId: null });
 
   const fetchRentals = async () => {
     try {
@@ -27,22 +28,22 @@ const RentalHistory = () => {
 
   useEffect(() => {
     fetchRentals();
+  }, [user.id, user._id]);
 
-    if (successMsg) {
-      const timer = setTimeout(() => setSuccessMsg(""), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [user.id, user._id, successMsg]);
+  const confirmCancel = (id) => {
+    setCancelModal({ isOpen: true, rentalId: id });
+  };
 
-  const handleCancel = async (id) => {
-    if (!window.confirm("Are you sure you want to cancel this rental request?")) return;
-
+  const executeCancel = async () => {
     try {
-      await rentalService.cancelRental(id);
-      setSuccessMsg("Rental request cancelled successfully.");
+      await rentalService.cancelRental(cancelModal.rentalId);
+      toast.success("Rental request cancelled successfully.");
+      setCancelModal({ isOpen: false, rentalId: null });
       fetchRentals();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to cancel rental");
+      toast.error("Failed to cancel rental");
+      setCancelModal({ isOpen: false, rentalId: null });
     }
   };
 
@@ -81,13 +82,6 @@ const RentalHistory = () => {
   return (
     <div className="bg-bg-secondary p-6 rounded-md shadow-shadow-sm">
       <h2 className="text-2xl font-bold mb-6 border-b border-border pb-4">Rental History</h2>
-
-      {successMsg && (
-        <div className="bg-success/10 border border-success/20 text-success px-4 py-3 rounded-lg mb-6 flex items-center gap-3 animate-fade-in">
-          <CheckCircle size={18} />
-          <p>{successMsg}</p>
-        </div>
-      )}
 
       {error && (
         <div className="bg-error/10 border border-error/20 text-error px-4 py-3 rounded-lg mb-6 flex items-center gap-3">
@@ -162,7 +156,7 @@ const RentalHistory = () => {
 
                     {rental.status === 'pending' && (
                       <button
-                        onClick={() => handleCancel(rental._id)}
+                        onClick={() => confirmCancel(rental._id)}
                         className="w-full mt-6 bg-error/10 text-error hover:bg-error hover:text-white border border-error/20 py-2 rounded transition-colors text-sm font-medium"
                       >
                         Cancel Request
@@ -173,6 +167,30 @@ const RentalHistory = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Cancel Confirmation Modal */}
+      {cancelModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-bg-secondary p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 border border-border">
+            <h3 className="text-xl font-bold mb-4">Cancel Rental</h3>
+            <p className="text-text-muted mb-6">Are you sure you want to cancel this rental request? This action cannot be undone.</p>
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setCancelModal({ isOpen: false, rentalId: null })}
+                className="px-4 py-2 rounded-md border border-border hover:bg-surface transition-colors font-medium"
+              >
+                No, keep it
+              </button>
+              <button 
+                onClick={executeCancel}
+                className="px-4 py-2 rounded-md bg-error text-white hover:bg-error/90 transition-colors font-medium"
+              >
+                Yes, cancel it
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -1,5 +1,6 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import MainLayout from "../layout/MainLayout";
 import ProtectedLayout from "../layout/ProtectedLayout";
 import Home from "../page/Home";
@@ -14,7 +15,9 @@ import Profile from "../page/Profile";
 
 const AppRoute = () => {
   return (
-    <Routes>
+    <>
+      <Toaster position="top-right" />
+      <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -28,7 +31,8 @@ const AppRoute = () => {
           <Route path="/profile" element={<Profile />} />
         </Route>
       </Route>
-    </Routes>
+      </Routes>
+    </>
   );
 };
 

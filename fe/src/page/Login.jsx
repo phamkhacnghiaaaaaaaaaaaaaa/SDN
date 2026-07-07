@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import * as authService from "../service/auth.service";
+import toast from "react-hot-toast";
 import {
   BookOpen,
   Mail,
@@ -43,7 +44,9 @@ const Login = () => {
         if (res?.requires2FA) {
           setNeeds2FA(true);
           setUserId(res.userId);
+          toast.success("Please enter the OTP sent to your email");
         } else {
+          toast.success("Login successful!");
           navigate("/");
         }
       } catch (err) {
@@ -63,6 +66,7 @@ const Login = () => {
       setLoading(true);
       try {
         await verify2FA(userId, otp);
+        toast.success("Login successful!");
         navigate("/");
       } catch (err) {
         setError(

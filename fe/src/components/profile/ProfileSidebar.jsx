@@ -2,6 +2,7 @@ import React from "react";
 import { BookHeart, BookOpen, Clock, Settings, LogOut } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const ProfileSidebar = ({ activeTab, setActiveTab }) => {
   const { user, logout } = useAuth();
@@ -9,6 +10,7 @@ const ProfileSidebar = ({ activeTab, setActiveTab }) => {
 
   const handleLogout = () => {
     logout();
+    toast.success("Logged out successfully");
     navigate("/login");
   };
 
@@ -34,11 +36,10 @@ const ProfileSidebar = ({ activeTab, setActiveTab }) => {
           <button
             key={item.id}
             onClick={() => setActiveTab(item.id)}
-            className={`flex items-center gap-3 px-4 py-3 rounded-md transition-colors w-full text-left font-medium ${
-              activeTab === item.id
-                ? "bg-primary text-white"
-                : "text-text-secondary hover:bg-surface hover:text-primary"
-            }`}
+            className={`flex items-center gap-3 px-4 py-3 rounded-md transition-colors w-full text-left font-medium ${activeTab === item.id
+              ? "bg-primary text-white"
+              : "text-text-secondary hover:bg-surface hover:text-primary"
+              }`}
           >
             {item.icon}
             <span>{item.label}</span>
