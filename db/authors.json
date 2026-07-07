@@ -8,5 +8,96 @@
     "_id": { "$oid": "667104a3f12345678901234a" },
     "name": "Dale Carnegie",
     "bio": "Author of How to Win Friends and Influence People."
+  },
+
+  {
+    "_id": { "$oid": "667104a3f123456789012360" },
+    "name": "Joshua Bloch",
+    "bio": "Author of Effective Java."
+  },
+  {
+    "_id": { "$oid": "667104a3f123456789012361" },
+    "name": "Martin Fowler",
+    "bio": "Software architect and author."
+  },
+  {
+    "_id": { "$oid": "667104a3f123456789012362" },
+    "name": "Eric Evans",
+    "bio": "Author of Domain-Driven Design."
+  },
+  {
+    "_id": { "$oid": "667104a3f123456789012363" },
+    "name": "Andrew Hunt",
+    "bio": "Co-author of The Pragmatic Programmer."
+  },
+  {
+    "_id": { "$oid": "667104a3f123456789012364" },
+    "name": "David Thomas",
+    "bio": "Co-author of The Pragmatic Programmer."
+  },
+  {
+    "_id": { "$oid": "667104a3f123456789012365" },
+    "name": "James Clear",
+    "bio": "Author of Atomic Habits."
+  },
+  {
+    "_id": { "$oid": "667104a3f123456789012366" },
+    "name": "Cal Newport",
+    "bio": "Author of Deep Work."
+  },
+  {
+    "_id": { "$oid": "667104a3f123456789012367" },
+    "name": "Yuval Noah Harari",
+    "bio": "Historian and bestselling author."
+  },
+  {
+    "_id": { "$oid": "667104a3f123456789012368" },
+    "name": "Stephen Hawking",
+    "bio": "Theoretical physicist."
+  },
+  {
+    "_id": { "$oid": "667104a3f123456789012369" },
+    "name": "Simon Sinek",
+    "bio": "Leadership author."
+  },
+  {
+    "_id": { "$oid": "667104a3f12345678901236a" },
+    "name": "Robin Sharma",
+    "bio": "Leadership and productivity author."
+  },
+  {
+    "_id": { "$oid": "667104a3f12345678901236b" },
+    "name": "George Orwell",
+    "bio": "English novelist."
+  },
+  {
+    "_id": { "$oid": "667104a3f12345678901236c" },
+    "name": "J. K. Rowling",
+    "bio": "British author."
+  },
+  {
+    "_id": { "$oid": "667104a3f12345678901236d" },
+    "name": "Sun Tzu",
+    "bio": "Ancient Chinese military strategist."
+  },
+  {
+    "_id": { "$oid": "667104a3f12345678901236e" },
+    "name": "Walter Isaacson",
+    "bio": "Biographer."
+  },
+  {
+    "_id": { "$oid": "667104a3f12345678901236f" },
+    "name": "Donald Norman",
+    "bio": "Design expert."
+  },
+  {
+    "_id": { "$oid": "667104a3f123456789012370" },
+    "name": "Robert Kiyosaki",
+    "bio": "Author of Rich Dad Poor Dad."
+  },
+  {
+    "_id": { "$oid": "667104a3f123456789012371" },
+    "name": "Napoleon Hill",
+    "bio": "Author of Think and Grow Rich."
   }
 ]

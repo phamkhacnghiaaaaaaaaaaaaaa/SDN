@@ -7,25 +7,36 @@ const getAllBooks = async (req, res) => {
   try {
     const { category } = req.query;
 
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const offset = Number(req.query.offset) || (page - 1) * limit;
+
     let query = {};
 
     if (category && category.trim() !== "") {
+      const categories = await Category.find({
+        name: { $regex: category, $options: "i" },
+      }).select("_id");
+
       query = {
         category_id: {
-          $in: (
-            await Category.find({
-              name: { $regex: category, $options: "i" },
-            }).select("_id")
-          ).map((c) => c._id),
+          $in: categories.map((c) => c._id),
         },
       };
     }
 
-    const books = await Book.find(query).populate(
-      "category_id author_id publisher_id",
-    );
+    const totalBooks = await Book.countDocuments(query);
 
-    res.status(200).json(books);
+    const books = await Book.find(query)
+      .populate("category_id author_id publisher_id")
+      .skip(offset)
+      .limit(limit);
+
+    res.status(200).json({
+      data: books,
+      totalPages: Math.ceil(totalBooks / limit),
+      currentPage: page,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -45,7 +56,7 @@ const getBookById = async (req, res) => {
 
 const searchBook = async (req, res) => {
   try {
-    const { category, author, publisher } = req.query;
+    const { category, author, publisher, title } = req.query;
     const books = await Book.find().populate(
       "category_id author_id publisher_id",
     );
@@ -60,7 +71,11 @@ const searchBook = async (req, res) => {
       const publisherFilter = publisher
         ? b.publisher_id.name.toLowerCase().includes(publisher.toLowerCase())
         : true;
-      return categoryFilter && authorFilter && publisherFilter;
+      const titleFilter = title
+        ? b.title.toLowerCase().includes(title.toLowerCase())
+        : true;
+
+      return categoryFilter && authorFilter && publisherFilter && titleFilter;
     });
 
     if (filteredBooks.length === 0)

@@ -7,6 +7,7 @@ const rentalRoute = require("./rental.route");
 const authorRoute = require("./author.route");
 const categoryRoute = require("./category.route");
 const favouriteRoute = require("./favourites.routes");
+const readingProgressRoute = require("./reading_progress.route");
 
 // Models for registration (populate support)
 require("../model/user.model");
@@ -25,5 +26,6 @@ router.use("/rentals", rentalRoute);
 router.use("/authors", authorRoute);
 router.use("/favourites", favouriteRoute);
 router.use("/categories", categoryRoute);
+router.use("/reading-progress", readingProgressRoute);
 
 module.exports = router;
