@@ -57,4 +57,9 @@ export const forgotPassword = async (email) => {
 export const resetPassword = async (token, newPassword) => {
     const rs = await api.post("/users/reset-password", { token, newPassword });
     return rs.data;
+};
+
+export const getAllUsers = async () => {
+    const rs = await api.get("/users");
+    return rs.data;
 };

@@ -139,7 +139,7 @@ const StaffLayout = () => {
                     <nav className="main-nav">
                         {isAuthenticated ? (
                             <>
-                                <Link to="/profile" className="main-nav__user">
+                                <Link to="/staff/profile" className="main-nav__user">
                                     <div className="main-nav__avatar">
                                         {getInitials(user?.fullname)}
                                     </div>
@@ -167,7 +167,29 @@ const StaffLayout = () => {
             </header>
 
             {/* Main Content */}
-            <main className="flex-1">
+            <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-8">
+                <div className="flex justify-center gap-4 mb-8">
+                    <Link
+                        to="/staff/books"
+                        className={`px-6 py-3 rounded-2xl font-bold transition-all shadow-md flex items-center gap-2 ${
+                            location.pathname.startsWith("/staff/books")
+                                ? "bg-primary text-white scale-105"
+                                : "bg-surface hover:bg-surface/70 text-text-muted hover:text-white"
+                        }`}
+                    >
+                        📚 Manage Books
+                    </Link>
+                    <Link
+                        to="/staff/rentals"
+                        className={`px-6 py-3 rounded-2xl font-bold transition-all shadow-md flex items-center gap-2 ${
+                            location.pathname.startsWith("/staff/rentals")
+                                ? "bg-primary text-white scale-105"
+                                : "bg-surface hover:bg-surface/70 text-text-muted hover:text-white"
+                        }`}
+                    >
+                        📋 Manage Rentals
+                    </Link>
+                </div>
                 <div className="main-content">
                     <Outlet />
                 </div>
@@ -211,7 +233,7 @@ const StaffLayout = () => {
                             <h4 className="main-footer__section-title">System</h4>
                             <ul className="main-footer__links">
                                 <li>
-                                    <Link to="/profile">My Profile</Link>
+                                    <Link to="staff/profile">My Profile</Link>
                                 </li>
                                 <li>
                                     <button onClick={logout} className="text-left">Log Out</button>

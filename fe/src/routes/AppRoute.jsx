@@ -18,6 +18,7 @@ import StaffGuard from "../layout/staff/StaffGuard";
 import ManageBooks from "../page/staff/ManageBooks";
 import ManageBookDetail from "../page/staff/ManageBookDetail";
 import ManageRentals from "../page/staff/ManageRentals";
+import StaffProfile from "../page/staff/StaffProfile";
 
 /**
  * Component dành cho các route công khai (Login, Register)
@@ -90,6 +91,7 @@ const AppRoute = () => {
           {/* Khi vào đường dẫn /staff thì tự động đẩy tới trang quản lý sách */}
           <Route path="/staff" element={<Navigate to="/staff/books" replace />} />
 
+          <Route path="/staff/profile" element={<StaffProfile />} />
           <Route path="/staff/books" element={<ManageBooks />} />
           <Route path="/staff/books/:id" element={<ManageBookDetail />} />
           <Route path="/staff/rentals" element={<ManageRentals />} />

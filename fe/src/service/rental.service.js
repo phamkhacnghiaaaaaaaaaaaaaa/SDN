@@ -19,3 +19,20 @@ export const cancelRental = async (id) => {
   });
   return rs.data;
 };
+
+export const getAllRentalsByStaff = async () => {
+  const rs = await api.get("/rentals/staff/all");
+  return rs.data;
+};
+
+export const updateStatusByStaff = async (id, status) => {
+  const rs = await api.patch(`/rentals/staff/${id}/status`, {
+    status: status,
+  });
+  return rs.data;
+};
+
+export const createRentalByStaff = async (rentalData) => {
+  const rs = await api.post("/rentals/staff/create", rentalData);
+  return rs.data;
+};
