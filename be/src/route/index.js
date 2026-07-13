@@ -6,6 +6,7 @@ const bookRoute = require("./book.route");
 const rentalRoute = require("./rental.route");
 const authorRoute = require("./author.route");
 const categoryRoute = require("./category.route");
+const publisherRoute = require("./publisher.route");
 const favouriteRoute = require("./favourites.routes");
 const readingProgressRoute = require("./reading_progress.route");
 
@@ -24,6 +25,7 @@ router.use("/users", userRoute);
 router.use("/books", bookRoute);
 router.use("/rentals", rentalRoute);
 router.use("/authors", authorRoute);
+router.use("/publishers", publisherRoute);
 router.use("/favourites", favouriteRoute);
 router.use("/categories", categoryRoute);
 router.use("/reading-progress", readingProgressRoute);

@@ -1,7 +1,9 @@
 const Book = require("../model/book.model");
 const Rental = require("../model/rental.model");
+const Author = require("../model/author.model");
+const Publisher = require("../model/publisher.model");
 const Category = require("../model/category.model");
-const mongoose = require("mongoose");
+const mongoose = require("mongoose"); // <--- Thêm dòng này vào đầu file
 
 const getAllBooks = async (req, res) => {
   try {
@@ -13,6 +15,7 @@ const getAllBooks = async (req, res) => {
 
     let query = {};
 
+    // Lọc theo tên category (nếu có)
     if (category && category.trim() !== "") {
       const categories = await Category.find({
         name: { $regex: category, $options: "i" },
@@ -25,8 +28,10 @@ const getAllBooks = async (req, res) => {
       };
     }
 
+    // Đếm tổng số sách theo điều kiện
     const totalBooks = await Book.countDocuments(query);
 
+    // Lấy danh sách sách theo điều kiện + phân trang
     const books = await Book.find(query)
       .populate("category_id author_id publisher_id")
       .skip(offset)
@@ -92,7 +97,15 @@ const searchBook = async (req, res) => {
 // fixed
 const createBook = async (req, res) => {
   try {
-    const { isbn, quantity, price, ...otherData } = req.body;
+    const {
+      isbn,
+      quantity,
+      price,
+      author_name,
+      publisher_name,
+      category_name,
+      ...otherData
+    } = req.body;
 
     if (!isbn || !isbn.trim()) {
       return res.status(400).json({
@@ -124,10 +137,49 @@ const createBook = async (req, res) => {
       existingBook.available_quantity += quantity;
 
       await existingBook.save();
+      return res
+        .status(200)
+        .json({ message: "Quantity increased", book: existingBook });
+    } else {
+      // Find or create Author
+      let author_id = null;
+      if (author_name) {
+        let author = await Author.findOne({ name: author_name });
+        if (!author) {
+          author = await Author.create({ name: author_name });
+        }
+        author_id = author._id;
+      }
 
-      return res.status(200).json({
-        message: "Quantity increased successfully",
-        book: existingBook,
+      // Find or create Publisher
+      let publisher_id = null;
+      if (publisher_name) {
+        let publisher = await Publisher.findOne({ name: publisher_name });
+        if (!publisher) {
+          publisher = await Publisher.create({ name: publisher_name });
+        }
+        publisher_id = publisher._id;
+      }
+
+      // Find or create Category
+      let category_id = null;
+      if (category_name) {
+        let category = await Category.findOne({ name: category_name });
+        if (!category) {
+          category = await Category.create({ name: category_name });
+        }
+        category_id = category._id;
+      }
+
+      const newBook = new Book({
+        isbn,
+        quantity,
+        available_quantity: quantity,
+        price,
+        author_id,
+        publisher_id,
+        category_id,
+        ...otherData,
       });
     }
 
@@ -160,29 +212,65 @@ const createBook = async (req, res) => {
 // 2. validate available_quantity >= 0 ; 3. validate available_quantity + số lượng sách đang ngoài đường <= quantity
 const updateBook = async (req, res) => {
   try {
-    const { quantity, available_quantity, isbn, ...otherData } = req.body;
     const bookId = req.params.id;
+    const {
+      quantity,
+      available_quantity,
+      isbn,
+      author_name,
+      publisher_name,
+      category_name,
+      ...otherData
+    } = req.body;
 
+    // 0. Tìm sách hiện tại
     const currentBook = await Book.findById(bookId);
     if (!currentBook)
       return res.status(404).json({ message: "Book not found" });
 
-    // --- 1. Xử lý ISBN (Check trùng & Hỏi Merge) ---
-    if (isbn && isbn.trim() !== currentBook.isbn) {
-      const normalizedISBN = isbn.trim();
+    // --- 1. XỬ LÝ TÁC GIẢ, NHÀ XUẤT BẢN, THỂ LOẠI (Find or Create) ---
+    // Xử lý Author
+    let author_id = currentBook.author_id;
+    if (author_name) {
+      let author = await Author.findOne({ name: author_name });
+      if (!author) {
+        author = await Author.create({ name: author_name });
+      }
+      author_id = author._id;
+    }
 
-      const existingBook = await Book.findOne({ isbn: normalizedISBN });
+    // Xử lý Publisher
+    let publisher_id = currentBook.publisher_id;
+    if (publisher_name) {
+      let publisher = await Publisher.findOne({ name: publisher_name });
+      if (!publisher) {
+        publisher = await Publisher.create({ name: publisher_name });
+      }
+      publisher_id = publisher._id;
+    }
 
+    // Xử lý Category
+    let category_id = currentBook.category_id;
+    if (category_name) {
+      let category = await Category.findOne({ name: category_name });
+      if (!category) {
+        category = await Category.create({ name: category_name });
+      }
+      category_id = category._id;
+    }
+
+    // --- 2. XỬ LÝ ISBN (Check trùng) ---
+    if (isbn && isbn !== currentBook.isbn) {
+      const existingBook = await Book.findOne({ isbn });
       if (existingBook) {
         return res.status(409).json({
           message: "ISBN conflict: Another book already exists with this ISBN.",
           conflictBookId: existingBook._id,
-          action: "MERGE_REQUIRED",
         });
       }
     }
 
-    // --- 2. Tính số lượng sách đang "ngoài đường" ---
+    // --- 3. TÍNH SỐ LƯỢNG SÁCH ĐANG ĐƯỢC MƯỢN ---
     const activeRentals = await Rental.aggregate([
       { $match: { status: { $in: ["accepted", "borrowed"] } } },
       { $unwind: "$items" },
@@ -198,41 +286,46 @@ const updateBook = async (req, res) => {
         },
       },
     ]);
-
     const borrowedCount =
       activeRentals.length > 0 ? activeRentals[0].totalBorrowed : 0;
 
-    // --- 3. LOGIC TÍNH INVENTORY ---
+    // --- 4. LOGIC TÍNH INVENTORY ---
     let newQuantity = currentBook.quantity;
     let newAvailable = currentBook.available_quantity;
 
+    // Cập nhật tổng số lượng
     if (quantity !== undefined) {
-      if (typeof quantity !== "number" || quantity < 0) {
+      const qty = Number(quantity);
+
+      if (Number.isNaN(qty) || qty < 0) {
         return res.status(400).json({
           message: "Quantity must be >= 0",
         });
       }
 
-      const delta = quantity - currentBook.quantity;
+      const delta = qty - currentBook.quantity;
+      newQuantity = qty;
 
-      newQuantity = quantity;
-
+      // Nếu không truyền available_quantity thì tự động điều chỉnh
       if (available_quantity === undefined) {
         newAvailable = currentBook.available_quantity + delta;
       }
     }
 
+    // Cập nhật số lượng có sẵn
     if (available_quantity !== undefined) {
-      if (typeof available_quantity !== "number" || available_quantity < 0) {
+      const availQty = Number(available_quantity);
+
+      if (Number.isNaN(availQty) || availQty < 0) {
         return res.status(400).json({
           message: "Available quantity must be >= 0",
         });
       }
 
-      newAvailable = available_quantity;
+      newAvailable = availQty;
     }
 
-    // --- 4. VALIDATION CHẶT ---
+    // --- 5. VALIDATION ---
     if (newQuantity < borrowedCount) {
       return res.status(400).json({
         message: `Invalid quantity: cannot be less than borrowed amount (${borrowedCount})`,
@@ -251,23 +344,27 @@ const updateBook = async (req, res) => {
       });
     }
 
-    // --- 5. UPDATE ---
+    // --- 6. UPDATE ---
     const updateData = {
       ...otherData,
       isbn: isbn ? isbn.trim() : currentBook.isbn,
       quantity: newQuantity,
       available_quantity: newAvailable,
+      author_id,
+      publisher_id,
+      category_id,
     };
 
     const updatedBook = await Book.findByIdAndUpdate(
       bookId,
       { $set: updateData },
       { new: true },
-    );
+    ).populate("author_id publisher_id category_id");
 
     res.status(200).json(updatedBook);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error("Update Error:", error);
+    res.status(500).json({ message: error.message });
   }
 };
 
