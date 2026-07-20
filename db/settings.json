@@ -1,0 +1,7 @@
+[
+  {
+    "_id": { "$oid": "667104a3f1234567890123b0" },
+    "rental_period_days": 14,
+    "late_fee_per_day": 5000
+  }
+]

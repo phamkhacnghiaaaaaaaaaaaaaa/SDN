@@ -2,13 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import ProfileSidebar from "../components/profile/ProfileSidebar";
 import FavouriteBooks from "../components/profile/FavouriteBooks";
-import ReadingBooks from "../components/profile/ReadingBooks";
 import RentalHistory from "../components/profile/RentalHistory";
 import SettingsContainer from "../components/profile/SettingsContainer";
 
 const Profile = () => {
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState("reading");
+  const [activeTab, setActiveTab] = useState("rentals");
 
   // Allow routing to specific tab via state
   useEffect(() => {
@@ -21,14 +20,12 @@ const Profile = () => {
     switch (activeTab) {
       case "favorites":
         return <FavouriteBooks />;
-      case "reading":
-        return <ReadingBooks />;
       case "rentals":
         return <RentalHistory />;
       case "settings":
         return <SettingsContainer />;
       default:
-        return <ReadingBooks />;
+        return <RentalHistory />;
     }
   };
 

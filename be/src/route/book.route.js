@@ -8,6 +8,7 @@ const {
   updateBook,
   deleteBook,
   getAvailableQuantityByBookId,
+  searchBook,
 } = require("../controller/book.controller");
 
 const { verifyToken, authorizeRole } = require("../middleware/auth");

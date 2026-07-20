@@ -9,6 +9,8 @@ const categoryRoute = require("./category.route");
 const publisherRoute = require("./publisher.route");
 const favouriteRoute = require("./favourites.routes");
 const readingProgressRoute = require("./reading_progress.route");
+const dashboardRoute = require("./dashboard.route");
+const settingRoute = require("./setting.route");
 
 // Models for registration (populate support)
 require("../model/user.model");
@@ -29,5 +31,7 @@ router.use("/publishers", publisherRoute);
 router.use("/favourites", favouriteRoute);
 router.use("/categories", categoryRoute);
 router.use("/reading-progress", readingProgressRoute);
+router.use("/dashboard", dashboardRoute);
+router.use("/settings", settingRoute);
 
 module.exports = router;

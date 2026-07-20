@@ -5,11 +5,14 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import * as rentalService from "../service/rental.service";
 import * as authService from "../service/auth.service";
+import { formatVND } from "../config/constants";
+import { useSettings } from "../context/SettingsContext";
 import toast from "react-hot-toast";
 
 const Cart = () => {
   const { cartItems, removeFromCart, updateQuantity, getTotalBooksCount, clearCart } = useCart();
   const { user } = useAuth();
+  const { rentalPeriodDays } = useSettings();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
@@ -31,6 +34,10 @@ const Cart = () => {
   const totalBooks = getTotalBooksCount();
   const rentalQuota = userInfo?.rental_available || 0;
   const isOverQuota = totalBooks > rentalQuota;
+  const totalFee = cartItems.reduce(
+    (acc, item) => acc + item.quantity * (item.book.price || 0),
+    0
+  );
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) return;
@@ -76,9 +83,9 @@ const Cart = () => {
     );
   }
 
-  // Calculate return date (7 days from now)
+  // Calculate return date (rental period from now)
   const returnDate = new Date();
-  returnDate.setDate(returnDate.getDate() + 7);
+  returnDate.setDate(returnDate.getDate() + rentalPeriodDays);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -127,6 +134,9 @@ const Cart = () => {
                   <span className="text-xs text-text-muted">
                     {item.book.available_quantity} available
                   </span>
+                  <span className="ml-auto text-sm font-bold text-primary">
+                    {formatVND(item.quantity * (item.book.price || 0))}
+                  </span>
                 </div>
               </div>
 
@@ -163,8 +173,12 @@ const Cart = () => {
                 </span>
                 <span className="font-semibold text-right">
                   {returnDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}<br />
-                  <span className="text-xs text-text-muted font-normal">(Max 7 days)</span>
+                  <span className="text-xs text-text-muted font-normal">({rentalPeriodDays} days)</span>
                 </span>
+              </div>
+              <div className="flex justify-between items-center border-t border-border pt-4">
+                <span className="font-medium">Total Rental Fee</span>
+                <span className="text-lg font-bold text-primary">{formatVND(totalFee)}</span>
               </div>
             </div>
 

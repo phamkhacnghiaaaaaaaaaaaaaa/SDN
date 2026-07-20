@@ -36,3 +36,8 @@ export const createRentalByStaff = async (rentalData) => {
   const rs = await api.post("/rentals/staff/create", rentalData);
   return rs.data;
 };
+
+export const extendRentalByStaff = async (id) => {
+  const rs = await api.patch(`/rentals/staff/${id}/extend`);
+  return rs.data;
+};

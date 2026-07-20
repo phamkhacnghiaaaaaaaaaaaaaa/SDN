@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, Plus, Minus, RefreshCw, User, Building2, Tag, BookType, FileText, Image, DollarSign, Layers } from "lucide-react";
+import { ArrowLeft, Save, Plus, Minus, RefreshCw, User, Building2, Tag, BookType, Image, DollarSign, Layers } from "lucide-react";
 import * as bookService from "../../service/books.service";
 
 const ManageBookDetail = () => {
@@ -344,11 +344,11 @@ const ManageBookDetail = () => {
                             </div>
                         </div>
 
-                        {/* Extra Grid Fields: Price, PDF, Quantity */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Extra Grid Fields: Rental Fee */}
+                        <div className="grid grid-cols-1 gap-8">
                             <div className="p-5 bg-bg rounded-2xl border border-border">
                                 <label className="flex items-center gap-2 text-xs text-text-muted uppercase font-bold mb-3">
-                                    <DollarSign size={14} /> Price ($)
+                                    <DollarSign size={14} /> Rental Fee (₫ / 14 days)
                                 </label>
                                 <input
                                     type="number"
@@ -357,19 +357,6 @@ const ManageBookDetail = () => {
                                     value={formData.price}
                                     onChange={handleInputChange}
                                     className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-white focus:border-primary focus:outline-none"
-                                />
-                            </div>
-
-                            <div className="p-5 bg-bg rounded-2xl border border-border">
-                                <label className="flex items-center gap-2 text-xs text-text-muted uppercase font-bold mb-3">
-                                    <FileText size={14} /> PDF Document URL
-                                </label>
-                                <input
-                                    name="pdf_url"
-                                    value={formData.pdf_url}
-                                    onChange={handleInputChange}
-                                    className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-white focus:border-primary focus:outline-none"
-                                    placeholder="https://example.com/book.pdf"
                                 />
                             </div>
                         </div>

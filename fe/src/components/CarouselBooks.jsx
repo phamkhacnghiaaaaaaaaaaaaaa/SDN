@@ -1,18 +1,25 @@
 import { ChevronRight, ShoppingCart, Check, Heart } from "lucide-react";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import {
   getMyFavourites,
   toggleFavourite,
 } from "../service/favourites.service";
+import { formatVND } from "../config/constants";
+import { useSettings } from "../context/SettingsContext";
 import toast from "react-hot-toast";
 
 const CarouselBooks = ({ books, carouselType, limit, showSeeAll = true }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { addToCart, isInCart } = useCart();
   const { isAuthenticated, user } = useAuth();
+  const { rentalPeriodDays } = useSettings();
+
+  // Khu quản lý hiện tại là /admin hay /staff (để điều hướng đúng, tránh bị guard chặn)
+  const manageBase = location.pathname.startsWith("/admin") ? "/admin" : "/staff";
 
   const [favoritedBooks, setFavoritedBooks] = React.useState(new Set());
 
@@ -84,7 +91,7 @@ const CarouselBooks = ({ books, carouselType, limit, showSeeAll = true }) => {
   // Hàm điều hướng chuẩn
   const goToDetail = (bookId) => {
     if (isManagement) {
-      navigate(`/staff/books/${bookId}`);
+      navigate(`${manageBase}/books/${bookId}`);
     } else {
       navigate(`/books/${bookId}`);
     }
@@ -97,7 +104,7 @@ const CarouselBooks = ({ books, carouselType, limit, showSeeAll = true }) => {
         {showSeeAll && (
           <button
             className="bg-bg text-primary text-bold text-[14px] px-3 py-2 rounded-md hover:scale-110 hover:text-primary-hover transition-all duration-300 flex items-center"
-            onClick={() => navigate(isManagement ? "/staff/books" : "/books")}
+            onClick={() => navigate(isManagement ? `${manageBase}/books` : "/books")}
           >
             <span>See All</span>
             <ChevronRight className="size-4" />
@@ -130,6 +137,10 @@ const CarouselBooks = ({ books, carouselType, limit, showSeeAll = true }) => {
                 </h3>
                 <p className="text-gray-400 text-sm mt-1">
                   {b.author_id?.name || "Unknown Author"}
+                </p>
+                <p className="text-primary text-sm font-bold mt-1">
+                  {formatVND(b.price)}{" "}
+                  <span className="text-text-muted font-normal text-xs">/ {rentalPeriodDays}d</span>
                 </p>
               </div>
 

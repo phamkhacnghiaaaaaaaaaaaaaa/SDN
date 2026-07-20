@@ -3,18 +3,45 @@
     "_id": { "$oid": "667104a3f123456789012341" },
     "fullname": "Admin Library",
     "email": "admin@library.com",
-    "password": "$2b$10$hashedpassword123",
-    "rental_available":20,
+    "password": "$2a$10$mJKlHbsuadKgWfsyoszUaO3QhQP2Ltxl.it1UngSmCzVnukBsO7Ye",
+    "rental_available": 20,
     "role": "Admin",
+    "status": "Active"
+  },
+  {
+    "_id": { "$oid": "667104a3f1234567890123a1" },
+    "fullname": "Sarah Staff",
+    "email": "staff@library.com",
+    "password": "$2a$10$mJKlHbsuadKgWfsyoszUaO3QhQP2Ltxl.it1UngSmCzVnukBsO7Ye",
+    "rental_available": 20,
+    "role": "Staff",
     "status": "Active"
   },
   {
     "_id": { "$oid": "667104a3f123456789012342" },
     "fullname": "John Doe",
     "email": "john@example.com",
-    "password": "$2b$10$hashedpassword456",
-    "rental_available":20,
+    "password": "$2a$10$mJKlHbsuadKgWfsyoszUaO3QhQP2Ltxl.it1UngSmCzVnukBsO7Ye",
+    "rental_available": 20,
     "role": "User",
     "status": "Active"
+  },
+  {
+    "_id": { "$oid": "667104a3f1234567890123a2" },
+    "fullname": "Jane Reader",
+    "email": "jane@example.com",
+    "password": "$2b$10$hashedpassword456",
+    "rental_available": 20,
+    "role": "User",
+    "status": "Active"
+  },
+  {
+    "_id": { "$oid": "667104a3f1234567890123a3" },
+    "fullname": "Locked Larry",
+    "email": "larry@example.com",
+    "password": "$2b$10$hashedpassword456",
+    "rental_available": 20,
+    "role": "User",
+    "status": "Locked"
   }
 ]

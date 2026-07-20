@@ -20,6 +20,12 @@ import ManageBooks from "../page/staff/ManageBooks";
 import ManageBookDetail from "../page/staff/ManageBookDetail";
 import ManageRentals from "../page/staff/ManageRentals";
 import StaffProfile from "../page/staff/StaffProfile";
+import AdminGuard from "../layout/admin/AdminGuard";
+import AdminLayout from "../layout/admin/AdminLayout";
+import AdminDashboard from "../page/admin/AdminDashboard";
+import ManageUsers from "../page/admin/ManageUsers";
+import ManageTaxonomy from "../page/admin/ManageTaxonomy";
+import SystemSettings from "../page/admin/SystemSettings";
 
 /**
  * Component dành cho các route công khai (Login, Register)
@@ -31,8 +37,12 @@ const PublicRoute = ({ children }) => {
   if (loading) return null; // Chờ khởi tạo Auth xong
 
   if (isAuthenticated) {
-    // Nếu là Staff hoặc Admin -> Đẩy vào khu quản lý
-    if (user?.role === "Staff" || user?.role === "Admin") {
+    // Admin -> khu quản trị riêng
+    if (user?.role === "Admin") {
+      return <Navigate to="/admin" replace />;
+    }
+    // Staff -> khu quản lý nghiệp vụ
+    if (user?.role === "Staff") {
       return <Navigate to="/staff/books" replace />;
     }
     // Ngược lại (User, Visitor) -> Đẩy về trang chủ khách hàng
@@ -85,9 +95,10 @@ const AppRoute = () => {
           <Route
             path="/"
             element={
-              // Nếu Staff/Admin truy cập vào "/" -> Tự động đẩy về Dashboard quản lý
-              isAuthenticated &&
-              (user?.role === "Staff" || user?.role === "Admin") ? (
+              // Nếu Staff/Admin truy cập vào "/" -> Tự động đẩy về khu quản lý tương ứng
+              isAuthenticated && user?.role === "Admin" ? (
+                <Navigate to="/admin" replace />
+              ) : isAuthenticated && user?.role === "Staff" ? (
                 <Navigate to="/staff/books" replace />
               ) : (
                 <Home />
@@ -122,15 +133,33 @@ const AppRoute = () => {
           </Route>
         </Route>
 
+        {/*
+           GIAO DIỆN DÀNH RIÊNG CHO ADMIN
+        */}
+        <Route element={<AdminGuard />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/books" element={<ManageBooks />} />
+            <Route path="/admin/books/:id" element={<ManageBookDetail />} />
+            <Route path="/admin/rentals" element={<ManageRentals />} />
+            <Route path="/admin/users" element={<ManageUsers />} />
+            <Route path="/admin/taxonomy" element={<ManageTaxonomy />} />
+            <Route path="/admin/settings" element={<SystemSettings />} />
+            <Route path="/admin/profile" element={<StaffProfile />} />
+          </Route>
+        </Route>
+
         {/* Catch-all: Nếu gõ bừa URL, đẩy về đúng Landing Page tương ứng với Role */}
         <Route
           path="*"
           element={
             <Navigate
               to={
-                user?.role === "Staff" || user?.role === "Admin"
-                  ? "/staff/books"
-                  : "/"
+                user?.role === "Admin"
+                  ? "/admin"
+                  : user?.role === "Staff"
+                    ? "/staff/books"
+                    : "/"
               }
               replace
             />

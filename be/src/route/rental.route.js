@@ -7,7 +7,8 @@ const {
     createRentalByStaff,
     updateRentalByStaff,
     updateStatusByStaff,
-    deleteRentalByStaff
+    deleteRentalByStaff,
+    extendRental
 } = require('../controller/rental.staff.controller');
 
 // User routes
@@ -21,6 +22,7 @@ router.get('/staff/all', verifyToken, authorizeRole('Staff', 'Admin'), getAllRen
 router.post('/staff/create', verifyToken, authorizeRole('Staff', 'Admin'), createRentalByStaff);
 router.patch('/staff/:id', verifyToken, authorizeRole('Staff', 'Admin'), updateRentalByStaff);
 router.patch('/staff/:id/status', verifyToken, authorizeRole('Staff', 'Admin'), updateStatusByStaff);
+router.patch('/staff/:id/extend', verifyToken, authorizeRole('Staff', 'Admin'), extendRental);
 router.delete('/staff/:id', verifyToken, authorizeRole('Staff', 'Admin'), deleteRentalByStaff);
 
 

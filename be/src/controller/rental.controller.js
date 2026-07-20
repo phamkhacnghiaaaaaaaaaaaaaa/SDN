@@ -1,6 +1,7 @@
 const Rental = require('../model/rental.model');
 const Book = require('../model/book.model');
 const User = require('../model/user.model');
+const Setting = require('../model/setting.model');
 
 const getAllRentals = async (req, res) => {
     try {
@@ -28,20 +29,30 @@ const createRental = async (req, res) => {
             return res.status(400).json({ message: 'Not enough rental quota for this user' });
         }
 
+        // Tính phí thuê + đóng băng đơn giá thuê từng bản tại thời điểm thuê
+        const pricedItems = [];
+        let fee = 0;
         for (const item of items) {
             const book = await Book.findById(item.book_id);
             if (!book) return res.status(404).json({ message: `Book not found (ID: ${item.book_id})` });
             if (book.available_quantity < item.quantity) {
                 return res.status(400).json({ message: `Not enough stock for "${book.title}". Available: ${book.available_quantity}` });
             }
+            const unit_fee = book.price || 0;
+            fee += unit_fee * item.quantity;
+            pricedItems.push({ book_id: item.book_id, quantity: item.quantity, unit_fee });
         }
 
+        const { rental_period_days } = await Setting.getSingleton();
         const rentDate = new Date();
-        const dueDate = new Date();
-        dueDate.setDate(rentDate.getDate() + 7);
+        const dueDate = new Date(rentDate);
+        dueDate.setDate(dueDate.getDate() + rental_period_days);
 
         const newRental = new Rental({
-            ...req.body,
+            user_id,
+            items: pricedItems,
+            fee,
+            payment_status: 'unpaid',
             status: "pending",
             rent_date: rentDate,
             due_date: dueDate

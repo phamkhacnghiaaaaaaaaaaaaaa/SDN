@@ -1,15 +1,122 @@
 [
   {
-    "_id": { "$oid": "667104a3f12345678901234d" },
+    "_id": { "$oid": "667104a3f1234567890123c1" },
     "user_id": { "$oid": "667104a3f123456789012342" },
-    "rent_date": { "$date": "2026-06-10T08:00:00Z" },
-    "due_date": { "$date": "2026-06-20T08:00:00Z" },
+    "rent_date": { "$date": "2026-07-19T08:00:00Z" },
+    "due_date": { "$date": "2026-08-02T08:00:00Z" },
     "status": "pending",
     "items": [
-      {
-        "book_id": { "$oid": "667104a3f123456789012346" },
-        "quantity": 1
-      }
-    ]
+      { "book_id": { "$oid": "667104a3f123456789012346" }, "quantity": 1, "unit_fee": 25000 }
+    ],
+    "fee": 25000,
+    "late_fee": 0,
+    "payment_status": "unpaid",
+    "extensions": 0
+  },
+  {
+    "_id": { "$oid": "667104a3f1234567890123c2" },
+    "user_id": { "$oid": "667104a3f1234567890123a2" },
+    "rent_date": { "$date": "2026-07-18T09:30:00Z" },
+    "due_date": { "$date": "2026-08-01T09:30:00Z" },
+    "status": "accepted",
+    "items": [
+      { "book_id": { "$oid": "667104a3f123456789012380" }, "quantity": 1, "unit_fee": 30000 }
+    ],
+    "fee": 30000,
+    "late_fee": 0,
+    "payment_status": "paid",
+    "paid_at": { "$date": "2026-07-18T09:35:00Z" },
+    "extensions": 0
+  },
+  {
+    "_id": { "$oid": "667104a3f1234567890123c3" },
+    "user_id": { "$oid": "667104a3f123456789012342" },
+    "rent_date": { "$date": "2026-07-15T10:00:00Z" },
+    "due_date": { "$date": "2026-07-29T10:00:00Z" },
+    "status": "borrowed",
+    "items": [
+      { "book_id": { "$oid": "667104a3f123456789012384" }, "quantity": 2, "unit_fee": 15000 }
+    ],
+    "fee": 30000,
+    "late_fee": 0,
+    "payment_status": "paid",
+    "paid_at": { "$date": "2026-07-15T10:05:00Z" },
+    "extensions": 0
+  },
+  {
+    "_id": { "$oid": "667104a3f1234567890123c4" },
+    "user_id": { "$oid": "667104a3f1234567890123a2" },
+    "rent_date": { "$date": "2026-07-01T08:00:00Z" },
+    "due_date": { "$date": "2026-07-10T08:00:00Z" },
+    "status": "borrowed",
+    "items": [
+      { "book_id": { "$oid": "667104a3f123456789012386" }, "quantity": 1, "unit_fee": 20000 }
+    ],
+    "fee": 20000,
+    "late_fee": 0,
+    "payment_status": "paid",
+    "paid_at": { "$date": "2026-07-01T08:05:00Z" },
+    "extensions": 0
+  },
+  {
+    "_id": { "$oid": "667104a3f1234567890123c5" },
+    "user_id": { "$oid": "667104a3f123456789012342" },
+    "rent_date": { "$date": "2026-06-20T08:00:00Z" },
+    "due_date": { "$date": "2026-07-04T08:00:00Z" },
+    "return_date": { "$date": "2026-07-02T14:00:00Z" },
+    "status": "returned",
+    "items": [
+      { "book_id": { "$oid": "667104a3f12345678901238a" }, "quantity": 1, "unit_fee": 12000 }
+    ],
+    "fee": 12000,
+    "late_fee": 0,
+    "payment_status": "paid",
+    "paid_at": { "$date": "2026-06-20T08:05:00Z" },
+    "extensions": 0
+  },
+  {
+    "_id": { "$oid": "667104a3f1234567890123c6" },
+    "user_id": { "$oid": "667104a3f1234567890123a2" },
+    "rent_date": { "$date": "2026-06-06T08:00:00Z" },
+    "due_date": { "$date": "2026-06-20T08:00:00Z" },
+    "return_date": { "$date": "2026-06-25T16:00:00Z" },
+    "status": "returned",
+    "items": [
+      { "book_id": { "$oid": "667104a3f12345678901234c" }, "quantity": 1, "unit_fee": 8000 }
+    ],
+    "fee": 8000,
+    "late_fee": 25000,
+    "payment_status": "paid",
+    "paid_at": { "$date": "2026-06-06T08:05:00Z" },
+    "extensions": 0
+  },
+  {
+    "_id": { "$oid": "667104a3f1234567890123c7" },
+    "user_id": { "$oid": "667104a3f123456789012342" },
+    "rent_date": { "$date": "2026-07-05T08:00:00Z" },
+    "due_date": { "$date": "2026-08-02T08:00:00Z" },
+    "status": "borrowed",
+    "items": [
+      { "book_id": { "$oid": "667104a3f123456789012346" }, "quantity": 1, "unit_fee": 25000 }
+    ],
+    "fee": 50000,
+    "late_fee": 0,
+    "payment_status": "paid",
+    "paid_at": { "$date": "2026-07-05T08:05:00Z" },
+    "extensions": 1
+  },
+  {
+    "_id": { "$oid": "667104a3f1234567890123c8" },
+    "user_id": { "$oid": "667104a3f1234567890123a2" },
+    "rent_date": { "$date": "2026-07-10T08:00:00Z" },
+    "due_date": { "$date": "2026-07-24T08:00:00Z" },
+    "status": "cancelled",
+    "items": [
+      { "book_id": { "$oid": "667104a3f123456789012380" }, "quantity": 1, "unit_fee": 30000 }
+    ],
+    "fee": 30000,
+    "late_fee": 0,
+    "payment_status": "unpaid",
+    "extensions": 0
   }
 ]

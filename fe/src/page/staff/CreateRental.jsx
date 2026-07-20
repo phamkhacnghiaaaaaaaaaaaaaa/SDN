@@ -3,6 +3,7 @@ import { X, Save, Search, User, BookOpen, Trash2, Plus, Minus, ShoppingBag, Chev
 import * as rentalService from "../../service/rental.service";
 import * as authService from "../../service/auth.service";
 import * as bookService from "../../service/books.service";
+import { formatVND } from "../../config/constants";
 
 const CreateRental = ({ isOpen, onClose, onRentalCreated }) => {
     const [selectedUser, setSelectedUser] = useState(null);
@@ -263,6 +264,7 @@ const CreateRental = ({ isOpen, onClose, onRentalCreated }) => {
                                                         <div>
                                                             <p className="font-bold text-white text-sm line-clamp-1">{item.book.title}</p>
                                                             <p className="text-[10px] text-text-muted">ISBN: {item.book.isbn}</p>
+                                                            <p className="text-[11px] text-primary font-bold mt-0.5">{formatVND(item.book.price)} × {item.quantity} = {formatVND((item.book.price || 0) * item.quantity)}</p>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -303,6 +305,8 @@ const CreateRental = ({ isOpen, onClose, onRentalCreated }) => {
                 <div className="p-8 border-t border-border flex items-center justify-between bg-surface/20">
                     <div className="text-text-muted text-sm font-medium">
                         Total Items: <span className="text-white font-black">{selectedItems.reduce((acc, i) => acc + i.quantity, 0)}</span>
+                        <span className="mx-3 text-border">|</span>
+                        Rental Fee: <span className="text-primary font-black">{formatVND(selectedItems.reduce((acc, i) => acc + i.quantity * (i.book.price || 0), 0))}</span>
                     </div>
                     <div className="flex gap-4">
                         <button onClick={onClose} className="px-8 py-3 rounded-2xl font-bold text-text-muted hover:bg-surface transition-all">Cancel</button>

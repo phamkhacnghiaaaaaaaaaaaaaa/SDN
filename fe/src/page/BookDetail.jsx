@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ShoppingCart, ArrowLeft, CheckCircle, XCircle, Heart, BookOpen } from "lucide-react";
+import { ShoppingCart, ArrowLeft, CheckCircle, XCircle, Heart, CalendarClock } from "lucide-react";
 import * as bookService from "../service/books.service";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { getMyFavourites, toggleFavourite } from "../service/favourites.service";
+import { formatVND } from "../config/constants";
+import { useSettings } from "../context/SettingsContext";
 import toast from "react-hot-toast";
 
 const BookDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { rentalPeriodDays } = useSettings();
   const { addToCart, isInCart, updateQuantity, cartItems } = useCart();
   
   const [book, setBook] = useState(null);
@@ -155,6 +158,14 @@ const BookDetail = () => {
           <h1 className="book-detail-title">{book.title}</h1>
           <p className="book-detail-author">by <span>{book.author_id?.name || "Unknown Author"}</span></p>
 
+          {/* Rental fee */}
+          <div className="flex items-baseline gap-2 mt-4">
+            <span className="text-2xl font-extrabold text-primary">{formatVND(book.price)}</span>
+            <span className="text-sm text-text-muted flex items-center gap-1">
+              <CalendarClock size={14} /> / {rentalPeriodDays} days rental
+            </span>
+          </div>
+
           <div className="book-detail-desc">
             <h3 className="text-lg font-semibold mb-2">Synopsis</h3>
             <p className="text-text-muted leading-relaxed">
@@ -209,26 +220,21 @@ const BookDetail = () => {
                </button>
             )}
 
+            {isAvailable && (
+              <div className="flex justify-between items-center text-sm border-t border-border pt-3">
+                <span className="text-text-muted">Subtotal ({quantity} × {formatVND(book.price)})</span>
+                <span className="font-bold text-white">{formatVND(book.price * quantity)}</span>
+              </div>
+            )}
+
             <div className="flex gap-4 w-full">
-               <button 
+               <button
                  className={`book-btn flex-1 sm:flex-none bg-surface border border-border hover:bg-surface-hover ${isFavorite ? 'text-red-500' : 'text-text'}`}
                  onClick={handleToggleFavorite}
                >
                  <Heart size={20} className={isFavorite ? "fill-red-500 text-red-500" : ""} />
                  Favorite
                </button>
-               
-               {book.pdf_url && (
-                 <a 
-                   href={book.pdf_url}
-                   target="_blank"
-                   rel="noreferrer"
-                   className="book-btn flex-1 sm:flex-none bg-blue-500 hover:bg-blue-600 text-white flex justify-center items-center gap-2"
-                 >
-                   <BookOpen size={20} />
-                   Read Online
-                 </a>
-               )}
             </div>
           </div>
         </div>

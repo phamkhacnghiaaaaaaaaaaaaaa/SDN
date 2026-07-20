@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Check, X, Clock, Calendar, CheckCircle2, User, BookOpen, AlertCircle } from "lucide-react";
+import { Check, X, Clock, Calendar, CheckCircle2, User, BookOpen, AlertCircle, CalendarPlus, AlertTriangle } from "lucide-react";
+import toast from "react-hot-toast";
 import * as rentalService from "../../service/rental.service";
 import RentalFilterSidebar from "../../components/RentalFilterSidebar";
 import CreateRental from "./CreateRental";
+import { formatVND } from "../../config/constants";
+
+// Số ngày quá hạn của đơn đang mượn (0 nếu chưa quá hạn)
+const getOverdueDays = (rental) => {
+    if (rental.status !== "borrowed" || !rental.due_date) return 0;
+    const diff = Date.now() - new Date(rental.due_date).getTime();
+    return diff > 0 ? Math.ceil(diff / (1000 * 60 * 60 * 24)) : 0;
+};
 
 const ManageRentals = () => {
     const [rentals, setRentals] = useState([]);
@@ -33,10 +42,20 @@ const ManageRentals = () => {
     const handleUpdateStatus = async (id, nextStatus) => {
         try {
             await rentalService.updateStatusByStaff(id, nextStatus);
-            alert(`Updated status to ${nextStatus}!`);
+            toast.success(`Updated status to ${nextStatus}!`);
             fetchRentals();
         } catch (err) {
-            alert(err.response?.data?.message || `Failed to update status to ${nextStatus}`);
+            toast.error(err.response?.data?.message || `Failed to update status to ${nextStatus}`);
+        }
+    };
+
+    const handleExtend = async (id) => {
+        try {
+            const updated = await rentalService.extendRentalByStaff(id);
+            toast.success(`Extended. New due date: ${new Date(updated.due_date).toLocaleDateString()}`);
+            fetchRentals();
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to extend rental");
         }
     };
 
@@ -149,10 +168,39 @@ const ManageRentals = () => {
                                                         <Calendar size={12} />
                                                         <span>Rented: {new Date(rental.createdAt).toLocaleDateString()}</span>
                                                     </div>
+                                                    {rental.due_date && !rental.return_date && (
+                                                        <div className={`flex items-center gap-1.5 ${getOverdueDays(rental) > 0 ? "text-error font-semibold" : ""}`}>
+                                                            <Clock size={12} />
+                                                            <span>Due: {new Date(rental.due_date).toLocaleDateString()}</span>
+                                                        </div>
+                                                    )}
+                                                    {getOverdueDays(rental) > 0 && (
+                                                        <div className="flex items-center gap-1.5 text-error font-bold">
+                                                            <AlertTriangle size={12} />
+                                                            <span>Overdue {getOverdueDays(rental)} day(s)</span>
+                                                        </div>
+                                                    )}
+                                                    {rental.extensions > 0 && (
+                                                        <div className="flex items-center gap-1.5 text-info">
+                                                            <CalendarPlus size={12} />
+                                                            <span>Extended ×{rental.extensions}</span>
+                                                        </div>
+                                                    )}
                                                     {rental.return_date && (
                                                         <div className="flex items-center gap-1.5 font-semibold text-success">
                                                             <CheckCircle2 size={12} />
                                                             <span>Returned: {new Date(rental.return_date).toLocaleDateString()}</span>
+                                                        </div>
+                                                    )}
+                                                    <div className="flex items-center gap-1.5 pt-1">
+                                                        <span className="text-primary font-bold">{formatVND(rental.fee)}</span>
+                                                        {rental.late_fee > 0 && (
+                                                            <span className="text-error font-bold">+ {formatVND(rental.late_fee)} late</span>
+                                                        )}
+                                                    </div>
+                                                    {rental.payment_status && ["accepted", "borrowed", "returned"].includes(rental.status) && (
+                                                        <div className={`font-semibold ${rental.payment_status === "paid" ? "text-success" : rental.payment_status === "refunded" ? "text-text-muted" : "text-warning"}`}>
+                                                            ● {rental.payment_status}
                                                         </div>
                                                     )}
                                                 </div>
@@ -189,6 +237,13 @@ const ManageRentals = () => {
                                                     {rental.status === "accepted" && (
                                                         <>
                                                             <button
+                                                                onClick={() => handleExtend(rental._id)}
+                                                                className="p-1.5 rounded-lg bg-info/10 text-info border border-info/20 hover:bg-info hover:text-white transition-all"
+                                                                title="Extend due date (+1 period)"
+                                                            >
+                                                                <CalendarPlus size={16} />
+                                                            </button>
+                                                            <button
                                                                 onClick={() => handleUpdateStatus(rental._id, "borrowed")}
                                                                 className="px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all"
                                                                 title="Deliver Books"
@@ -205,13 +260,22 @@ const ManageRentals = () => {
                                                         </>
                                                     )}
                                                     {rental.status === "borrowed" && (
-                                                        <button
-                                                            onClick={() => handleUpdateStatus(rental._id, "returned")}
-                                                            className="px-2.5 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white font-bold text-xs transition-all"
-                                                            title="Confirm Return"
-                                                        >
-                                                            Return
-                                                        </button>
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleExtend(rental._id)}
+                                                                className="p-1.5 rounded-lg bg-info/10 text-info border border-info/20 hover:bg-info hover:text-white transition-all"
+                                                                title="Extend due date (+1 period)"
+                                                            >
+                                                                <CalendarPlus size={16} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleUpdateStatus(rental._id, "returned")}
+                                                                className="px-2.5 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white font-bold text-xs transition-all"
+                                                                title="Confirm Return"
+                                                            >
+                                                                Return
+                                                            </button>
+                                                        </>
                                                     )}
                                                     {["returned", "cancelled"].includes(rental.status) && (
                                                         <span className="text-xs text-text-muted italic">No actions</span>

@@ -6,8 +6,95 @@ const { sendEmail } = require('../utils/email');
 
 const getAllUsers = async (req, res) => {
     try {
-        const users = await User.find();
+        const users = await User.find().select('-password');
         res.status(200).json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// --- Admin: quản lý người dùng ---
+const VALID_ROLES = ['Visitor', 'User', 'Staff', 'Admin'];
+const VALID_STATUS = ['Active', 'Locked'];
+
+// GET /users/admin/all - danh sách người dùng (kèm số liệu, không gồm password)
+const getAllUsersForAdmin = async (req, res) => {
+    try {
+        const { search, role, status } = req.query;
+        const query = {};
+
+        if (role && VALID_ROLES.includes(role)) query.role = role;
+        if (status && VALID_STATUS.includes(status)) query.status = status;
+        if (search && search.trim()) {
+            const rx = new RegExp(search.trim(), 'i');
+            query.$or = [{ fullname: rx }, { email: rx }];
+        }
+
+        const users = await User.find(query)
+            .select('-password -twoFactorSecret -resetPasswordToken -resetPasswordExpires')
+            .sort({ createdAt: -1 });
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// PATCH /users/admin/:id/role - đổi vai trò người dùng
+const updateUserRole = async (req, res) => {
+    try {
+        const { role } = req.body;
+        if (!VALID_ROLES.includes(role)) {
+            return res.status(400).json({ message: 'Invalid role' });
+        }
+
+        // Không cho tự hạ quyền chính mình để tránh khoá cửa hệ thống
+        if (req.params.id === req.user.id) {
+            return res.status(400).json({ message: 'You cannot change your own role' });
+        }
+
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // Không cho hạ quyền Admin cuối cùng
+        if (user.role === 'Admin' && role !== 'Admin') {
+            const adminCount = await User.countDocuments({ role: 'Admin' });
+            if (adminCount <= 1) {
+                return res.status(400).json({ message: 'Cannot demote the last remaining Admin' });
+            }
+        }
+
+        user.role = role;
+        await user.save();
+
+        const obj = user.toObject();
+        delete obj.password;
+        res.status(200).json({ message: 'Role updated', user: obj });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// PATCH /users/admin/:id/status - khoá / mở khoá tài khoản
+const updateUserStatus = async (req, res) => {
+    try {
+        const { status } = req.body;
+        if (!VALID_STATUS.includes(status)) {
+            return res.status(400).json({ message: 'Invalid status' });
+        }
+
+        if (req.params.id === req.user.id) {
+            return res.status(400).json({ message: 'You cannot lock your own account' });
+        }
+
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        user.status = status;
+        await user.save();
+
+        const obj = user.toObject();
+        delete obj.password;
+        res.status(200).json({ message: `Account ${status === 'Locked' ? 'locked' : 'unlocked'}`, user: obj });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -33,6 +120,10 @@ const login = async (req, res) => {
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+
+        if (user.status === 'Locked') {
+            return res.status(403).json({ message: 'Your account has been locked. Please contact the administrator.' });
+        }
 
         if (user.twoFactorEnabled) {
             // Generate OTP
@@ -235,6 +326,9 @@ const resetPassword = async (req, res) => {
 
 module.exports = {
     getAllUsers,
+    getAllUsersForAdmin,
+    updateUserRole,
+    updateUserStatus,
     register,
     login,
     verifyLogin2FA,

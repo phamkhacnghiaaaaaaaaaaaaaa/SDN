@@ -1,5 +1,5 @@
 import React from "react";
-import { BookHeart, BookOpen, Clock, Settings, LogOut } from "lucide-react";
+import { BookHeart, Clock, Settings, LogOut } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -16,7 +16,6 @@ const ProfileSidebar = ({ activeTab, setActiveTab }) => {
 
   // 1. Định nghĩa tất cả các item có thể có
   const allNavItems = [
-    { id: "reading", label: "Reading Progress", icon: <BookOpen size={18} /> },
     { id: "favorites", label: "Favorite Books", icon: <BookHeart size={18} /> },
     { id: "rentals", label: "Rental History", icon: <Clock size={18} /> },
     { id: "settings", label: "Settings", icon: <Settings size={18} /> },

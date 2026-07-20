@@ -2,10 +2,19 @@ import React, { useState, useEffect } from "react";
 import { CheckCircle, Clock, XCircle, BookOpen, AlertCircle } from "lucide-react";
 import * as rentalService from "../../service/rental.service";
 import { useAuth } from "../../context/AuthContext";
+import { formatVND } from "../../config/constants";
+import { useSettings } from "../../context/SettingsContext";
 import toast from "react-hot-toast";
+
+const getOverdueDays = (rental) => {
+  if (rental.status !== "borrowed" || !rental.due_date) return 0;
+  const diff = Date.now() - new Date(rental.due_date).getTime();
+  return diff > 0 ? Math.ceil(diff / (1000 * 60 * 60 * 24)) : 0;
+};
 
 const RentalHistory = () => {
   const { user } = useAuth();
+  const { rentalPeriodDays, lateFeePerDay } = useSettings();
   const [rentals, setRentals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -111,7 +120,14 @@ const RentalHistory = () => {
                     <p className="text-sm">{formatDate(rental.createdAt)}</p>
                   </div>
                 </div>
-                {getStatusBadge(rental.status)}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {getOverdueDays(rental) > 0 && (
+                    <span className="rental-badge bg-error/10 text-error border border-error/20 px-2 py-1 rounded text-xs flex items-center gap-1 w-max font-semibold">
+                      <AlertCircle size={12} /> Overdue {getOverdueDays(rental)}d
+                    </span>
+                  )}
+                  {getStatusBadge(rental.status)}
+                </div>
               </div>
 
               <div className="p-5">
@@ -129,7 +145,7 @@ const RentalHistory = () => {
                         <div>
                           <p className="font-medium text-white mb-1 line-clamp-1">{item.book_id?.title || "Unknown Book"}</p>
                           <p className="text-sm text-text-muted mb-2">Qty: {item.quantity}</p>
-                          <p className="text-sm text-primary font-medium">{item.book_id?.price?.toLocaleString() || 0} ₫ / day</p>
+                          <p className="text-sm text-primary font-medium">{formatVND(item.unit_fee || item.book_id?.price || 0)} / {rentalPeriodDays} days</p>
                         </div>
                       </div>
                     ))}
@@ -146,12 +162,42 @@ const RentalHistory = () => {
                         <span className="text-text-muted">Expected Return:</span>
                         <span>{formatDate(rental.due_date)}</span>
                       </div>
-                      <div className="border-t border-border pt-3 mt-3 flex justify-between items-center">
-                        <span className="font-medium">Total Price:</span>
-                        <span className="text-lg font-bold text-primary">
-                          {rental.items?.reduce((acc, item) => acc + (item.quantity * (item.book_id?.price || 0)), 0).toLocaleString()} ₫
-                        </span>
-                      </div>
+                      {(() => {
+                        const rentalFee = rental.fee || rental.items?.reduce((acc, item) => acc + (item.quantity * (item.unit_fee || item.book_id?.price || 0)), 0) || 0;
+                        const lateFee = rental.late_fee || 0;
+                        const overdueDays = getOverdueDays(rental);
+                        const totalQty = rental.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
+                        const estLateFee = overdueDays > 0 ? overdueDays * lateFeePerDay * totalQty : 0;
+                        return (
+                          <>
+                            <div className="flex justify-between text-sm mb-2">
+                              <span className="text-text-muted">Rental Fee:</span>
+                              <span>{formatVND(rentalFee)}</span>
+                            </div>
+                            {lateFee > 0 && (
+                              <div className="flex justify-between text-sm mb-2 text-error">
+                                <span>Late Fee:</span>
+                                <span>{formatVND(lateFee)}</span>
+                              </div>
+                            )}
+                            {lateFee === 0 && estLateFee > 0 && (
+                              <div className="flex justify-between text-sm mb-2 text-warning">
+                                <span>Est. Late Fee:</span>
+                                <span>{formatVND(estLateFee)}</span>
+                              </div>
+                            )}
+                            <div className="border-t border-border pt-3 mt-1 flex justify-between items-center">
+                              <span className="font-medium">Total:</span>
+                              <span className="text-lg font-bold text-primary">{formatVND(rentalFee + lateFee)}</span>
+                            </div>
+                            {rental.payment_status && rental.status !== 'pending' && rental.status !== 'cancelled' && (
+                              <p className={`text-xs mt-2 font-semibold ${rental.payment_status === 'paid' ? 'text-success' : 'text-warning'}`}>
+                                {rental.payment_status === 'paid' ? '● Paid' : rental.payment_status === 'refunded' ? '● Refunded' : '● Unpaid'}
+                              </p>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
 
                     {rental.status === 'pending' && (

@@ -309,10 +309,10 @@ const CreateBook = ({ isOpen, onClose, onBookCreated }) => {
                             />
                         </div>
 
-                        {/* Price */}
+                        {/* Rental Fee */}
                         <div>
                             <label className="flex items-center gap-2 text-xs text-text-muted uppercase font-bold mb-2">
-                                <DollarSign size={14} /> Price ($)
+                                <DollarSign size={14} /> Rental Fee (₫ / 14 days)
                             </label>
                             <input
                                 type="number"
@@ -338,20 +338,6 @@ const CreateBook = ({ isOpen, onClose, onBookCreated }) => {
                                 className="w-full bg-surface/50 border border-border rounded-lg px-4 py-2.5 text-white focus:border-primary focus:outline-none transition-all"
                             />
                         </div>
-                    </div>
-
-                    {/* PDF URL */}
-                    <div>
-                        <label className="flex items-center gap-2 text-xs text-text-muted uppercase font-bold mb-2">
-                            <FileText size={14} /> PDF Document URL
-                        </label>
-                        <input
-                            name="pdf_url"
-                            value={formData.pdf_url}
-                            onChange={handleInputChange}
-                            className="w-full bg-surface/50 border border-border rounded-lg px-4 py-2.5 text-white focus:border-primary focus:outline-none transition-all"
-                            placeholder="https://example.com/book.pdf"
-                        />
                     </div>
 
                     {/* Synopsis / Description */}
